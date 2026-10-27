@@ -15,6 +15,7 @@ TIZEN="$TIZEN_HOME/tools/ide/bin/tizen"
 SDB="$TIZEN_HOME/tools/sdb"
 TV_DIR="${TV_DIR:-$(cd .. && pwd)/tv-setup}"
 MOVIES_DIR="${MOVIES_DIR:-$(cd .. && pwd)/movies}"
+[ -d node_modules/typescript ] || { echo "Run 'npm install' here first: it builds Movies for older TVs." >&2; exit 1; }
 
 "$SDB" connect "$TV_IP"
 SERIAL=$("$SDB" devices | awk -v ip="$TV_IP" 'index($1, ip) == 1 { print $1 }')
@@ -41,6 +42,13 @@ sed "s/tv-__ROOM__/tv-$ROOM/" movies/phone.js > build/movies/assets/js/phone.js
 # After tv.js, which it needs to have switched on TV mode.
 perl -pi -e 's#^(\s*)(<script src="assets/js/tv.js"></script>)#$1$2\n$1<script src="assets/js/phone.js"></script>#' build/movies/index.html
 grep -q 'assets/js/phone.js' build/movies/index.html || { echo "Couldn't add phone.js to Movies' index.html" >&2; exit 1; }
+# A second copy for 2020-21 TVs, whose browsers are too old for Movies as it is (movies/legacy.js).
+node movies/legacy.js build/movies
 # -o is resolved against the tizen CLI's own folder unless absolute.
 "$TIZEN" package -t wgt -s "$CERT_PROFILE" -o "$PWD/dist/movies" -- build/movies
 (cd dist/movies && mv ./*.wgt movies.wgt && "$TIZEN" install -n movies.wgt -s "$SERIAL")
+
+# The launcher, opened above, only finds installed apps when it starts, so it's restarted to
+# pick up Movies.
+"$SDB" -s "$SERIAL" shell 0 was_kill SkrFlap001.SeekerFlap || true
+"$TIZEN" run -p SkrFlap001.SeekerFlap -s "$SERIAL"

@@ -1,9 +1,55 @@
 # Putting the launcher on a Samsung TV
 
-Works on Samsung smart TVs from 2022 on (Tizen 6.5+). Tested on the UN43DU7200DXZA and
-UN55DU7200DXZA (2024, Tizen 8). You need a Mac, a Samsung account and a phone hotspot.
+Works on Samsung smart TVs from 2020 on (Tizen 6.0+). Tested on the UN43DU7200DXZA and
+UN55DU7200DXZA (2024, Tizen 8) and the UN65TU700DFXZA (2020, Tizen 6.0). You need a Mac, a
+Samsung account and a phone hotspot.
 
 The apps stay on the TV once installed. The Mac is only needed to install or update them.
+
+## Quick deploy (a TV that's been set up before)
+
+Everything below, in order, for a TV in the [known TVs](#known-tvs) table:
+
+1. **Phone:** Personal Hotspot on, with **Maximize Compatibility** on.
+2. **TV:** on the hotspot (Settings → General & Privacy → Network). Note its IP from Network
+   Status → IP Settings.
+3. **Mac:** join the hotspot, then give it the address the TV's Developer Mode expects
+   (the table's "Host PC IP"). This works without `sudo` for an admin account:
+   ```
+   networksetup -setmanual Wi-Fi 172.20.10.12 255.255.255.240 172.20.10.1
+   ifconfig en0 | grep 'inet '        # wait until it shows 172.20.10.12
+   ```
+4. **Connect** (retry a few times; see [sdb problems](#sdb-connect-says-failed-to-connect-but-port-26101-is-open)):
+   ```
+   ~/tizen-studio/tools/sdb connect <tv-ip>
+   ~/tizen-studio/tools/sdb devices    # the TV's model, marked "device"
+   ```
+5. **Deploy** from `tv-private`, with the TV's certificate profile from the table:
+   ```
+   CERT_PROFILE=<profile> ./deploy.sh <tv-ip>
+   ```
+6. **Mac back to normal Wi-Fi:** `networksetup -setdhcp Wi-Fi`. The TV can go back to home
+   Wi-Fi too; the apps keep working.
+
+If the TV's IP or the Mac's address changed, Developer Mode needs the new Host PC IP and a
+full restart (step 3 below).
+
+## Known TVs
+
+| TV                          | Year, Tizen | DUID            | Cert profile | Host PC IP     | Movies          |
+| --------------------------- | ----------- | --------------- | ------------ | -------------- | --------------- |
+| 43" UN43DU7200DXZA          | 2024, 8     | `P7CIFS3MNP7GA` | `seekertvs`* | `172.20.10.5`  | as is           |
+| 55" UN55DU7200DXZA          | 2024, 8     | `H3CIFS3MLDSSY` | `seekertvs`* | `172.20.10.5`  | as is           |
+| The `tv` profile's TV       | ?           | `RLCB2NS2E5SGI` | `tv`         | `172.20.10.5`  | picked at start |
+| 65" UN65TU700DFXZA          | 2020, 6.0   | `JHCB2NS2E5T6G` | `new`        | `172.20.10.12` | older-browser copy |
+
+The 65" TV's phone room is `QXFXQKCW`. On its hotspot setup the TV took `172.20.10.5`, so the
+Mac uses `.12`. "Movies" is which copy the TV loads (see
+[Movies on older TVs](#movies-on-older-tvs)); it picks by itself, nothing to set.
+
+\* On the Mac that set those two up, not this one. This Mac has `tv` (the active profile) and
+`new`. A TV must always be deployed with the same profile, because its author certificate has
+to match the apps already installed (see step 5).
 
 ## 1. One-time Mac setup
 
@@ -19,6 +65,9 @@ The apps stay on the TV once installed. The Mac is only needed to install or upd
      Certificate-Manager cert-add-on TV-SAMSUNG-Extension-Tools TV-SAMSUNG-Extension-Resources
    ```
    Skip the emulator package. It's large and not needed.
+3. In `tv-private` (next to `tv-setup` and `movies`), run `./link.sh`, then `npm install`
+   (or `bun install`). That installs TypeScript, which builds Movies' copy for older TVs.
+   `deploy.sh` stops and says so if it's missing.
 
 ## 2. Put the Mac and TV on the same network
 
@@ -36,6 +85,11 @@ Home routers often stop devices from talking to each other, so use your phone's 
    ```
    **Undo this when you're done (see "Back to home Wi-Fi" below), or the Mac won't connect
    to any other Wi-Fi.**
+
+   If macOS says **"Another device on the network is using your computer's IP address"**,
+   something else (often the TV) already has `.5`. Pick another address from `.2` to `.14`,
+   such as `172.20.10.12`, and use that as the Host PC IP in step 3. `networksetup` (without
+   `sudo`) works from Claude Code for an admin account.
 
 ## 3. Turn on Developer Mode on the TV
 
@@ -64,42 +118,53 @@ If the Mac's IP ever changes, repeat these steps with the new address and restar
 
 If `connect` fails, run `~/tizen-studio/tools/sdb kill-server` and try again a few times.
 
-The last command prints the TV's DUID, e.g. `P7CIFS3MNP7GA`. Note it down for the certificate.
-
-Known TVs:
-
-| TV                    | DUID            |
-| --------------------- | --------------- |
-| 43" UN43DU7200DXZA    | `P7CIFS3MNP7GA` |
-| 55" UN55DU7200DXZA    | `H3CIFS3MLDSSY` |
+The last command prints the TV's DUID, e.g. `P7CIFS3MNP7GA`. Note it down for the certificate,
+and add the TV to the [known TVs](#known-tvs) table.
 
 ## 5. Samsung certificate
 
 The apps must be signed with a certificate that lists every TV's DUID. Deploying signs with
-the **active** profile (set `CERT_PROFILE` to use another). On the Mac that set up the two TVs
-above it's **`seekertvs`**; this Mac's `tv` profile covers `RLCB2NS2E5SGI`. Skip this step
-unless you're adding a TV.
+the **active** profile (set `CERT_PROFILE` to use another). The [known TVs](#known-tvs) table
+says which profile covers which TV. Skip this step unless you're adding a TV.
+
+Check whether a profile covers a TV:
+```
+grep -o '<TestDevice>[^<]*' ~/SamsungCertificate/<profile>/device-profile.xml
+```
+
+**Lost the author certificate's password?** Then make the new profile with **Create a new
+author certificate** (write the password down) and list only the new TV. That TV must then
+always be deployed with this profile, and the other TVs with theirs. A TV's installed apps
+only accept updates signed by the same author certificate; switching means uninstalling
+them first. This is how `new` was made for the 65" TV.
 
 1. Open `~/tizen-studio/tools/certificate-manager/certificate-manager.app`.
 2. Click **+** → **Samsung** → **TV** → Next. Give the profile a new name.
-3. **Author certificate:** choose **Use an existing author certificate**, browse to
-   `~/SamsungCertificate/seekerflap/author.p12`, and enter its password. Always reuse
-   this file, so the TVs accept new installs as updates of the apps already on them.
+3. **Author certificate:** choose **Use an existing author certificate**, browse to the
+   author certificate the TVs already use (`~/SamsungCertificate/<profile>/author.p12`, e.g.
+   `tv` on this Mac, `seekerflap` on the other), and enter its password. Always reuse this
+   file, so the TVs accept new installs as updates of the apps already on them. The file
+   picker doesn't understand `~`: press **Cmd+Shift+G** and paste the full path, e.g.
+   `/Users/jonathanbernard/SamsungCertificate/tv/author.p12`.
 4. **Distributor certificate:** **Create a new distributor certificate**, privilege
    **Public**, and add **every** TV's DUID (old and new).
 5. Sign in with your Samsung account when asked, then Finish.
+6. **Quit the Certificate Manager.** While it's open it runs its own sdb server, and
+   `sdb connect` fails until it's closed.
 
 ## 6. Install
 
-Run this from `tv-private`, which sits next to `tv-setup` and `movies`. Run `./link.sh` once
-per Mac first:
+Run this from `tv-private`, which sits next to `tv-setup` and `movies`. Run `./link.sh` and
+`npm install` once per Mac first (step 1):
 
 ```
-./deploy.sh 172.20.10.2
+CERT_PROFILE=<profile> ./deploy.sh 172.20.10.2
 ```
 
-Repeat with each TV's IP. The script installs the launcher and Movies, then opens the
-launcher. It prints the TV's phone room. The room comes from the TV's DUID, so each TV gets
+Repeat with each TV's IP and profile. The script installs the launcher and Movies, then
+restarts the launcher so it finds Movies (it only looks for installed apps when it starts).
+Movies is built from the `movies` folder as it is on disk, so pull or commit there first:
+whatever's in it, like Rotten Tomatoes, is what the TV gets. It prints the TV's phone room. The room comes from the TV's DUID, so each TV gets
 its own and keeps it on every deploy. Phones paired before the room changed need to scan the
 TV's QR code again. Don't use `tv-setup/deploy.sh` here: it installs only the launcher, without
 Movies or a fixed room.
@@ -118,15 +183,53 @@ When you're done:
 
 To update later, repeat steps 2, 4 and 6. Developer Mode and the certificate are already set.
 
+## Movies on older TVs
+
+2020-21 Samsungs (Tizen 6.0, Chromium 76 or older) can't run Movies as it's written. Their
+browser can't read `?.`, `??` or `||=`, and its CSS has no `aspect-ratio`, `inset`,
+`clamp()`/`min()`/`max()`, `:is()`/`:has()` or flex `gap`. On those TVs, Movies used to show
+just the website's top bar on an empty page.
+
+So `deploy.sh` ships two copies in one app (`movies/legacy.js` builds the second):
+
+- `assets/js` and `assets/css`: Movies exactly as in the `movies` repo. Newer TVs load these.
+- `assets/js-legacy` and `assets/css-legacy`: the same code made safe for old browsers:
+  - **Scripts:** compiled to ES2018 by TypeScript, with `:is()` in selector strings spelled
+    out. `polyfills.js` adds `matchAll` and `Promise.allSettled`.
+  - **Stylesheets:** `inset` written as top/right/bottom/left, and
+    `clamp()`/`min()`/`max()` worked out for 1920x1080. Selectors are split apart, so one
+    `:has()` doesn't drop a whole rule.
+  - **`layout.js`:** turns flex `gap` into margins and sets heights for `aspect-ratio` boxes
+    as pages draw.
+
+`index.html` picks between them when it starts: no `CSS.supports('aspect-ratio: 1')` (added in
+Chromium 88) means the legacy copy. Both copies come from the same source on every deploy, so
+new Movies features (like Rotten Tomatoes) reach old TVs without extra work. Check a feature
+on an old TV after adding it, though: a new CSS or JavaScript feature might need adding to
+`legacy.js` or `polyfills.js`. To try the legacy copy in a desktop browser, open Movies with
+`?legacy=1` (spacing looks doubled there, since that browser does flex gap too).
+
+## Debugging an app on the TV
+
+On Tizen 6.0 this works (on newer TVs `debug` may hang):
+```
+~/tizen-studio/tools/sdb -s <tv-ip>:26101 shell 0 was_kill HrtvTV0001.Heartive
+~/tizen-studio/tools/sdb -s <tv-ip>:26101 shell 0 debug HrtvTV0001.Heartive   # prints "port: N"
+curl http://<tv-ip>:N/json      # Chrome DevTools Protocol: Runtime.evaluate works,
+                                # Page.captureScreenshot hangs
+```
+The launcher's app ID is `SkrFlap001.SeekerFlap`. `debug` prints nothing if the app is
+already running; that's what the `was_kill` is for.
+
 ## Back to home Wi-Fi (do this every time you used the hotspot)
 
 The fixed address from step 2 applies to **every** Wi-Fi network, so until you undo it the
 Mac won't connect to your home Wi-Fi, even though your other devices do.
 
-1. Open a **separate terminal window**. `sudo` can't ask for your password from inside
-   Claude Code. Run:
+1. Run this (an admin account doesn't need `sudo`; if it's refused, use `sudo` in a
+   **separate terminal window**, since `sudo` can't ask for a password inside Claude Code):
    ```
-   sudo networksetup -setdhcp Wi-Fi
+   networksetup -setdhcp Wi-Fi
    ```
    Or use System Settings: **Wi-Fi** → **Details…** next to the network → **TCP/IP** →
    **Configure IPv4: Using DHCP** → **OK**.
@@ -239,9 +342,31 @@ grep -o 'profile name="[^"]*"\|active="[^"]*"' ~/tizen-studio-data/profile/profi
 The TV isn't connected to sdb. It may have left the hotspot, turned off, or changed IP.
 Check `~/tizen-studio/tools/sdb devices`, then reconnect.
 
+### `sdb connect` keeps failing while the Certificate Manager is open
+The Certificate Manager starts its own sdb server (`sdb fork-server server
+--only-detect-tizen`), which doesn't connect to TVs over the network. Quit the Certificate
+Manager, then:
+```
+~/tizen-studio/tools/sdb kill-server
+~/tizen-studio/tools/sdb start-server
+~/tizen-studio/tools/sdb connect <tv-ip>
+```
+
+### Movies shows only the top bar on an empty page
+The TV's browser is too old for Movies as written, and it didn't get the legacy copy. Check
+that `deploy.sh` printed `Movies: N scripts and 3 stylesheets, with an older-browser copy`.
+If it did, debug the app (see [Debugging](#debugging-an-app-on-the-tv)) and look for errors
+from `assets/js-legacy`: a new JavaScript or CSS feature in Movies may need adding to
+`movies/legacy.js` or `movies/polyfills.js`.
+
+### The Movies tile is missing from the launcher
+The launcher was already running when Movies was installed: it only looks for apps when it
+starts. `deploy.sh` restarts it at the end. Otherwise restart the TV (hold power).
+
 ### `sdb shell 0 debug <app id>` hangs
-Remote debugging doesn't start on these TVs. Don't wait on it. To see what the app is doing,
-have it send logs to your computer over HTTP instead.
+On the 2024 TVs remote debugging doesn't start, so don't wait on it. To see what the app is
+doing there, have it send logs to your computer over HTTP instead. On Tizen 6.0 it works:
+see [Debugging](#debugging-an-app-on-the-tv).
 
 ### An HDMI input doesn't show in the launcher
 The launcher lists only ports the TV reports as **connected**. Most TVs report a port as

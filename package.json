@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Builds Movies' older-browser copy for 2020-2021 TVs (deploy.sh)",
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
