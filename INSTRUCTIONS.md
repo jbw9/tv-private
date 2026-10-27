@@ -75,8 +75,10 @@ Known TVs:
 
 ## 5. Samsung certificate
 
-The apps must be signed with a certificate that lists every TV's DUID. The current profile,
-**`seekertvs`**, covers both TVs above. Skip this step unless you're adding a TV.
+The apps must be signed with a certificate that lists every TV's DUID. Deploying signs with
+the **active** profile (set `CERT_PROFILE` to use another). On the Mac that set up the two TVs
+above it's **`seekertvs`**; this Mac's `tv` profile covers `RLCB2NS2E5SGI`. Skip this step
+unless you're adding a TV.
 
 1. Open `~/tizen-studio/tools/certificate-manager/certificate-manager.app`.
 2. Click **+** → **Samsung** → **TV** → Next. Give the profile a new name.
@@ -89,16 +91,22 @@ The apps must be signed with a certificate that lists every TV's DUID. The curre
 
 ## 6. Install
 
-From this folder:
+Run this from `tv-private`, which sits next to `tv-setup` and `movies`. Run `./link.sh` once
+per Mac first:
 
 ```
-./deploy-heartive.sh 172.20.10.2
+./deploy.sh 172.20.10.2
 ```
 
-Repeat with each TV's IP. The script signs (with the `seekertvs` profile) and installs the
-launcher and Heartive, then opens Heartive. Don't use `./deploy.sh` here: it installs only the
-launcher and defaults to a `tv` profile that doesn't exist, so the install fails with a
-certificate error.
+Repeat with each TV's IP. The script installs the launcher and Movies, then opens the
+launcher. It prints the TV's phone room. The room comes from the TV's DUID, so each TV gets
+its own and keeps it on every deploy. Phones paired before the room changed need to scan the
+TV's QR code again. Don't use `tv-setup/deploy.sh` here: it installs only the launcher, without
+Movies or a fixed room.
+
+The first time Movies opens, it shows a code and a QR code. Scan it with a phone that's
+signed in to Movies (or sign in on the phone after scanning) to sign in the TV. You don't have
+to type a password on the TV.
 
 When you're done:
 
