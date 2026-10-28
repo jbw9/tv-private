@@ -7,5 +7,6 @@ Object.assign(window.CONFIG, {
   // Movies keeps Heartive's app ID (movies/config.xml). Its logo is linked in by link.sh.
   // YouTube and Spotify come right after it.
   apps: [{ key: 'movies', name: 'MOVIES', short: 'MOVIES', color: '#1DA1F2', appId: 'HrtvTV0001.Heartive' }, 'youtube', 'spotify'],
+  hide: ['hulu', 'disney'],
 });
 Object.assign(window.CONFIG, { spotifyClientId: "d3d064842b4748b5828341ef7af43b11", spotifyRefreshToken: "AQBiY6usbHa0BOahqJ3-VEtYDh-Ptqu2E7u2dVLSlLy09tI-rpOtfM-6Xk0RqfqwBmUKkrFaY071y_WXf1Qk3HdoN4iWhOAvpCqFuT_LfqH4WcgLacJFE4_T8eMCYufeZGg" });
