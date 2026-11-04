@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<profiles active="seekertvs" version="3.1">
+<profile name="seekerflap">
+<profileitem ca="" distributor="0" key="/Users/jonathanmacmini/SamsungCertificate/seekerflap/author.p12" password="/Users/jonathanmacmini/SamsungCertificate/seekerflap/author.pwd" rootca=""/>
+<profileitem ca="" distributor="1" key="/Users/jonathanmacmini/SamsungCertificate/seekerflap/distributor.p12" password="/Users/jonathanmacmini/SamsungCertificate/seekerflap/distributor.pwd" rootca=""/>
+<profileitem ca="" distributor="2" key="" password="" rootca=""/>
+</profile>
+<profile name="seekertvs">
+<profileitem ca="" distributor="0" key="/Users/jonathanmacmini/SamsungCertificate/seekerflap/author.p12" password="/Users/jonathanmacmini/SamsungCertificate/seekerflap/author.pwd" rootca=""/>
+<profileitem ca="" distributor="1" key="/Users/jonathanmacmini/SamsungCertificate/seekertvs/distributor.p12" password="/Users/jonathanmacmini/SamsungCertificate/seekertvs/distributor.pwd" rootca=""/>
+<profileitem ca="" distributor="2" key="" password="" rootca=""/>
+</profile>
+</profiles>
