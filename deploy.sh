@@ -44,6 +44,10 @@ perl -pi -e 's#^(\s*)(<script src="assets/js/tv.js"></script>)#$1$2\n$1<script s
 grep -q 'assets/js/phone.js' build/movies/index.html || { echo "Couldn't add phone.js to Movies' index.html" >&2; exit 1; }
 # A second copy for 2020-21 TVs, whose browsers are too old for Movies as it is (movies/legacy.js).
 node movies/legacy.js build/movies
+# The app opens the website's newest Movies (movies/boot.html), and falls back to this packaged
+# copy offline and on 2020-21 TVs.
+mv build/movies/index.html build/movies/app.html
+cp movies/boot.html build/movies/index.html
 # -o is resolved against the tizen CLI's own folder unless absolute.
 "$TIZEN" package -t wgt -s "$CERT_PROFILE" -o "$PWD/dist/movies" -- build/movies
 (cd dist/movies && mv ./*.wgt movies.wgt && "$TIZEN" install -n movies.wgt -s "$SERIAL")

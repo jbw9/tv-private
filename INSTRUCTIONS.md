@@ -163,8 +163,11 @@ CERT_PROFILE=<profile> ./deploy.sh 172.20.10.2
 
 Repeat with each TV's IP and profile. The script installs the launcher and Movies, then
 restarts the launcher so it finds Movies (it only looks for installed apps when it starts).
-Movies is built from the `movies` folder as it is on disk, so pull or commit there first:
-whatever's in it, like Rotten Tomatoes, is what the TV gets. It prints the TV's phone room. The room comes from the TV's DUID, so each TV gets
+Movies updates itself: on 2022 and later TVs the app loads Movies as it is on the website
+(jbw9.github.io/movies), so whatever is pushed to jbw9/movies is what the TV runs, with no
+reinstall. It checks again each time you come back to it. Up three times at the top of any page
+reloads it. The `movies` folder as it is on disk is also packaged, and opens when the website
+doesn't answer within 2.5s and on 2020-21 TVs (`movies/boot.html` decides). It prints the TV's phone room. The room comes from the TV's DUID, so each TV gets
 its own and keeps it on every deploy. Phones paired before the room changed need to scan the
 TV's QR code again. Don't use `tv-setup/deploy.sh` here: it installs only the launcher, without
 Movies or a fixed room.

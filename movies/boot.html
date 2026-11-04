@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movies</title>
+    <style>html, body { margin: 0; background: #0b0b10; }</style>
+</head>
+<body>
+<!-- The TV app's first page (deploy.sh installs it as index.html). It runs Movies as it is on the
+     website, so pushing to jbw9/movies updates the TV with no reinstall. The website's page is
+     written into this one rather than opened, so it keeps this app's sign-in, phone remote
+     (phone.js) and TV functions. Its files are fetched again only when the site's version (the
+     Last-Modified GitHub Pages gives every file of a deploy) changes. Without an answer in 2.5s,
+     and on 2020-21 TVs, which need the converted copy deploy.sh builds, the packaged copy
+     (app.html) opens instead. -->
+<script>
+(function () {
+    var LIVE = 'https://jbw9.github.io/movies/';
+    var settled = false, timer = null;
+    function packaged() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        location.replace('app.html' + location.search + location.hash);
+    }
+    if (/[?&]legacy=1/.test(location.search) || !(window.CSS && CSS.supports && CSS.supports('aspect-ratio: 1'))) return packaged();
+    timer = setTimeout(packaged, 2500);
+
+    fetch(LIVE + 'index.html', { cache: 'no-cache' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text().then(function (html) { return { html: html, version: r.headers.get('Last-Modified') || '' }; });
+    }).then(function (site) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        var v = '?v=' + encodeURIComponent(site.version);
+        var html = site.html.replace(/(src|href)="(assets\/[^"?#]+)"/g, function (all, attr, path) {
+            return attr + '="' + LIVE + path + v + '"';
+        });
+        // The phone remote, with this TV's room in it, is part of the app (deploy.sh).
+        html = html.replace(/(<script src="[^"]*assets\/js\/tv\.js[^"]*"><\/script>)/, function (tag) {
+            return tag + '\n<script src="assets/js/phone.js"><\/script>';
+        });
+        // Coming back to Movies with a newer version on the website reloads it, unless a video
+        // or pop-up is open.
+        var END = '</' + 'body>'; // split, so nothing scanning this page for its end stops here
+        html = html.replace(END, '<script>(function () {' +
+            'var LIVE = ' + JSON.stringify(LIVE) + ', VERSION = ' + JSON.stringify(site.version) + ';' +
+            'document.addEventListener("visibilitychange", function () {' +
+            '  if (document.hidden) return;' +
+            '  fetch(LIVE + "index.html", { method: "HEAD", cache: "no-cache" }).then(function (r) {' +
+            '    var v = r.ok && r.headers.get("Last-Modified");' +
+            '    if (v && v !== VERSION && !document.querySelector("#modalRoot .modal")) location.reload();' +
+            '  }).catch(function () {});' +
+            '});' +
+            '})();<\/script>\n' + END);
+        document.open();
+        document.write(html);
+        document.close();
+    }).catch(packaged);
+})();
+</script>
+</body>
+</html>

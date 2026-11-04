@@ -58,10 +58,11 @@
         }
     }
 
+    // Movies stays open behind the launcher, so opening it again is instant.
     function exitApp() {
         if (!isTizen) return;
         const quit = () => { try { tizen.application.getCurrentApplication().exit(); } catch (e) {} };
-        try { tizen.application.launch(LAUNCHER_ID, quit, quit); } catch (e) { quit(); }
+        try { tizen.application.launch(LAUNCHER_ID, () => {}, quit); } catch (e) { quit(); }
     }
 
     function receive(event, p) {
@@ -70,7 +71,7 @@
         if (p.app !== 'movies' || document.hidden || performance.now() - shownAt < 1000) return;
         if (event === 'key' && p.down !== false && KEY_CODES[p.k]) press(p.k);
         else if (event === 'type' && (p.back || p.text)) type(p.back | 0, String(p.text || ''));
-        else if (event === 'volume') volume(p.change);
+        else if (event === 'volume') level = volume(p.change);
         else if (event === 'home' || event === 'open') exitApp();
     }
 
@@ -91,9 +92,14 @@
         };
     }
 
+    // The TV's volume, read every 5s rather than on every check below: those reads are
+    // synchronous and take time from the video.
+    let level = volume();
+    setInterval(() => { if (!document.hidden) level = volume(); }, 5000);
+
     // Tells phones Movies is in front, so they address it; every 20s while it stays there.
     function publish() {
-        const state = { app: 'movies', screen: 'movies', games: [], game: null, volume: volume() };
+        const state = { app: 'movies', screen: 'movies', games: [], game: null, volume: level };
         const json = JSON.stringify(state);
         if (json === sent && Date.now() - sentAt < 20000) return;
         sent = json;
