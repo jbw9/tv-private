@@ -23,7 +23,7 @@ window.CONFIG = {
   // The phone page (jam/index.html) that the home screen's QR code opens: remote, games
   // and, with Spotify set up, the jam. With spotifyClientSecret (from the Spotify app's
   // dashboard; it stays on the TV) guests' search is instant.
-  jamUrl: 'https://jbw9.github.io/bonito-tv/jam/',
+  jamUrl: 'https://jbw9.github.io/tv-private/tv-setup/jam/',
   spotifyClientSecret: '',
   // Movies (github.com/jbw9/movies) first, then YouTube and Spotify; Hulu and Disney+ hidden.
   // `url`: what the tile opens off a TV, as in the website's demo.

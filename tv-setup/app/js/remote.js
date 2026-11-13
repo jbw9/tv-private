@@ -14,7 +14,7 @@ const Phones = (() => {
   // The jam page for this TV's room, opened on a tab: 'remote', 'spotify' or 'games'.
   // 'setup' is the setup page next to it (setup/index.html).
   function url(tab) {
-    if (tab === 'setup') return new URL('../setup/?room=' + ROOM, CONFIG.jamUrl).href;
+    if (tab === 'setup') return new URL('../setup/?room=' + ROOM + (Platform.android ? '&spotify=0' : ''), CONFIG.jamUrl).href;
     return CONFIG.jamUrl + '?room=' + ROOM + (tab ? '#' + tab : '');
   }
 

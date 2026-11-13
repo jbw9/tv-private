@@ -39,7 +39,7 @@ App.screens.settings = (() => {
       change: () => { settings.units = settings.units === 'fahrenheit' ? 'celsius' : 'fahrenheit'; },
     },
     { label: 'RESET BEST', title: 'Reset best scores', value: () => 'ALL GAMES', action: () => Scores.resetLocal() },
-    ...(Phones.enabled() ? [{ label: 'PHONE SETUP', value: () => 'NAME, CITY, SPOTIFY', nice: 'Name, city, Spotify', action: () => App.go('setup') }] : []),
+    ...(Phones.enabled() ? [{ label: 'PHONE SETUP', value: () => Platform.android ? 'NAME, CITY' : 'NAME, CITY, SPOTIFY', nice: Platform.android ? 'Name, city' : 'Name, city, Spotify', action: () => App.go('setup') }] : []),
     { label: 'DONE', action: () => leave() },
   ];
 

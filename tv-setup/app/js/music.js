@@ -275,6 +275,8 @@ const Music = (() => {
   }
 
   function enabled() {
+    // The Android app leaves Spotify to its own TV app, which needs no developer app to log in.
+    if (Platform.android) return false;
     return !!(CONFIG.spotifyClientId && CONFIG.spotifyRefreshToken);
   }
 

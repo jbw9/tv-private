@@ -87,7 +87,7 @@
         <div class="designs" id="designs"></div>
       </section>
 
-      <section>
+      <section id="sp-section">
         <h2>Spotify <span style="color:var(--dim);font-weight:500">· optional, Premium only</span></h2>
         <div id="sp-linked" hidden>
           <div class="linked">✓ <span id="sp-who">Spotify connected</span></div>
@@ -154,6 +154,9 @@
 
     let units = store.get('units', 'celsius'), designKey = store.get('design', 'bonito');
     let spotify = store.get('spotify', null); // { clientId, refreshToken, who }
+    // ?spotify=0: the TV (the Android app) opens the Spotify app instead, so there's nothing to log in to.
+    const noSpotify = new URLSearchParams(location.search).get('spotify') === '0';
+    if (noSpotify) $('sp-section').hidden = true;
 
     function msg(text, kind) {
       $('msg').textContent = text;
@@ -293,9 +296,11 @@
 
     $('send').onclick = () => {
       const p = { app: 'launcher', name: $('name').value.trim().toUpperCase() || 'THERE', city: $('city').value.trim(), units, design: designKey };
-      if (spotify) Object.assign(p, { spotifyClientId: spotify.clientId, spotifyRefreshToken: spotify.refreshToken });
-      if ($('playlist').value.trim()) p.spotifyPlaylist = $('playlist').value.trim();
-      if ($('secret').value.trim()) p.spotifyClientSecret = $('secret').value.trim();
+      if (!noSpotify) {
+        if (spotify) Object.assign(p, { spotifyClientId: spotify.clientId, spotifyRefreshToken: spotify.refreshToken });
+        if ($('playlist').value.trim()) p.spotifyPlaylist = $('playlist').value.trim();
+        if ($('secret').value.trim()) p.spotifyClientSecret = $('secret').value.trim();
+      }
       send('setup', p);
       msg('Sending…');
       waiting = setTimeout(() => {
