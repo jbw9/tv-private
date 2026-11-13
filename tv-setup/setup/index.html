@@ -131,6 +131,7 @@
     const REDIRECT = location.origin + location.pathname;
     // The layouts in app/js/home.js, with the website's screenshots of them.
     const DESIGNS = [
+      { key: 'lakeside', name: 'Lakeside' },
       { key: 'bonito', name: 'Bonito' },
       { key: 'horizon', name: 'Horizon' },
       { key: 'dial', name: 'Dial' },
@@ -152,7 +153,7 @@
       } catch (e) { return asked; }
     })();
 
-    let units = store.get('units', 'celsius'), designKey = store.get('design', 'bonito');
+    let units = store.get('units', 'celsius'), designKey = store.get('design', 'lakeside');
     let spotify = store.get('spotify', null); // { clientId, refreshToken, who }
     // ?spotify=0: the TV (the Android app) opens the Spotify app instead, so there's nothing to log in to.
     const noSpotify = new URLSearchParams(location.search).get('spotify') === '0';
