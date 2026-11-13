@@ -5,7 +5,7 @@ Object.assign(window.CONFIG, {
   design: 'lakeside',
   supabaseUrl: 'https://jbvkjvdthuzofvmhwctv.supabase.co',
   supabaseKey: 'sb_publishable_hbxcjbYF5H8py5gGLokxPg_tD9nGsNl',
-  // Movies keeps Heartive's app ID (movies/config.xml). Its logo is linked in by link.sh.
+  // Movies keeps Heartive's app ID (movies/config.xml).
   // YouTube and Spotify come right after it.
   apps: [{ key: 'movies', name: 'MOVIES', short: 'MOVIES', color: '#1DA1F2', appId: 'HrtvTV0001.Heartive' }, 'youtube', 'spotify'],
   hide: ['hulu', 'disney'],

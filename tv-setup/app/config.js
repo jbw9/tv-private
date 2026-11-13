@@ -25,4 +25,8 @@ window.CONFIG = {
   // dashboard; it stays on the TV) guests' search is instant.
   jamUrl: 'https://jbw9.github.io/bonito-tv/jam/',
   spotifyClientSecret: '',
+  // Movies (github.com/jbw9/movies) first, then YouTube and Spotify; Hulu and Disney+ hidden.
+  // `url`: what the tile opens off a TV, as in the website's demo.
+  apps: [{ key: 'movies', name: 'MOVIES', short: 'MOVIES', color: '#1DA1F2', appId: 'HrtvTV0001.Heartive', url: 'https://jbw9.github.io/movies/' }, 'youtube', 'spotify'],
+  hide: ['hulu', 'disney'],
 };

@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 HERE="$PWD"
 TV_DIR="${TV_DIR:-$HERE/tv-setup}"
-pairs=("config.local.js:app/config.local.js" "INSTRUCTIONS.md:INSTRUCTIONS.md" "movies/icon.png:app/img/logos/movies.png")
+pairs=("config.local.js:app/config.local.js" "INSTRUCTIONS.md:INSTRUCTIONS.md")
 # The APKs' signing key: Android only installs an update signed with the same one.
 [ -f release.keystore ] && pairs+=("release.keystore:android/release.keystore")
 for pair in "${pairs[@]}"; do

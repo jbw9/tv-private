@@ -103,6 +103,7 @@ const Platform = (() => {
     return new Promise(resolve => {
       if (android) return resolve(AndroidTV.launch(installed[app.key] || app.appId || '') ? 'ok' : 'error');
       if (!isTV) {
+        if (app.url) window.open(app.url, '_blank');
         console.log('[preview] would launch', app.name);
         return resolve('preview');
       }

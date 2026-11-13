@@ -4,6 +4,9 @@ This README is for a friend's Claude (or the friend). It puts the same thing on 
 (2020 or newer) that's on Jonathan's: the Bonito launcher as the home screen, and Movies in
 it, followed by YouTube and Spotify.
 
+See it running first at https://jbw9.github.io/tv-private: the real launcher, live in the
+browser, with the install steps.
+
 `INSTRUCTIONS.md` is the full step-by-step guide, with fixes for every problem we hit. This
 file covers what's different when you set it up on **your** Mac and TV. Read both.
 
@@ -20,20 +23,16 @@ file covers what's different when you set it up on **your** Mac and TV. Read bot
 
 Some files here are Jonathan's own. Change these first:
 
-1. **`config.local.js`**: replace it with your own settings. Keep the `apps` and `hide`
-   lines; they put Movies on the home screen and hide Hulu and Disney+. Put your own name in
-   `name`. **Delete the `spotifyClientId` / `spotifyRefreshToken` line.** That's Jonathan's
-   Spotify login. To use your own Spotify (Premium), log in later from the TV's
-   Settings → PHONE SETUP, or run `tv-setup/spotify-login.py`. The Supabase URL and key
-   are a shared public project that powers the phone remote, and they're fine to keep.
+1. **`config.local.js`**: replace it with your own settings. Movies first on the home screen,
+   Hulu and Disney+ hidden, and the Lakeside design are already the launcher's defaults
+   (`tv-setup/app/config.js`), so you only need your name. **Delete the `spotifyClientId` /
+   `spotifyRefreshToken` line.** That's Jonathan's Spotify login. To use your own Spotify
+   (Premium), log in later from the TV's Settings → PHONE SETUP, or run
+   `tv-setup/spotify-login.py`. Supabase (the phone remote, Movies sign-in) is a shared
+   project already set in the launcher; there's nothing to set up.
    ```js
    Object.assign(window.CONFIG, {
      name: 'YOUR NAME',
-     design: 'lakeside',
-     supabaseUrl: 'https://jbvkjvdthuzofvmhwctv.supabase.co',
-     supabaseKey: 'sb_publishable_hbxcjbYF5H8py5gGLokxPg_tD9nGsNl',
-     apps: [{ key: 'movies', name: 'MOVIES', short: 'MOVIES', color: '#1DA1F2', appId: 'HrtvTV0001.Heartive' }, 'youtube', 'spotify'],
-     hide: ['hulu', 'disney'],
    });
    ```
 2. **`certs/`**: ignore it. Those certificates only cover Jonathan's TVs, and a Samsung TV
