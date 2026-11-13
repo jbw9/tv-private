@@ -12,7 +12,7 @@ import android.webkit.WebViewClient;
 // The launcher (app/) as a full-screen web page, with a small bridge so it can list
 // and open the TV's apps and change the volume, as it does through Tizen on Samsung.
 public class MainActivity extends Activity {
-    static final String URL = "https://jbw9.github.io/bonito-tv/app/?android";
+    static final String URL = "https://jbw9.github.io/tv-private/tv-setup/app/?android";
     WebView web;
 
     @Override

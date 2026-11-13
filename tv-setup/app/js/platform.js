@@ -67,6 +67,8 @@ const Platform = (() => {
     if (app.game) return true;
     if (app.hdmi) return isTV ? !!hdmiSources[app.hdmi] : !android && !web && app.hdmi === 1;
     if (web) return false;
+    // A web app with no Android package (Movies) opens in the app's own WebView.
+    if (android && app.url) return true;
     return !(isTV || android) || !scanned || !!installed[app.key];
   }
 
@@ -101,6 +103,10 @@ const Platform = (() => {
   function launch(app) {
     if (app.hdmi) return showInput(app);
     return new Promise(resolve => {
+      if (android && !installed[app.key] && app.url) {
+        location.href = app.url;
+        return resolve('ok');
+      }
       if (android) return resolve(AndroidTV.launch(installed[app.key] || app.appId || '') ? 'ok' : 'error');
       if (!isTV) {
         if (app.url) window.open(app.url, '_blank');
