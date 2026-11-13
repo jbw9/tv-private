@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121212">
+  <title>Jam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #121212;
+      --highlight: #2a2a2a;
+      --ink: #ffffff;
+      --sub: #b3b3b3;
+      --dim: #727272;
+      --green: #1ed760;
+      --red: #e22134;
+      --tint: #404040;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body {
+      font: 16px/1.35 Figtree, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    main { max-width: 560px; margin: 0 auto; padding: 0 16px 180px; }
+    svg { display: block; }
+
+    .top {
+      position: sticky; top: 0; z-index: 3; margin: 0 -16px; padding: calc(12px + env(safe-area-inset-top)) 16px 10px;
+      background: var(--bg);
+    }
+    .bar { display: flex; align-items: center; justify-content: space-between; height: 40px; margin-bottom: 10px; }
+    .bar h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+    .device { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--dim); }
+    .device.on { color: var(--green); }
+    .search { position: relative; display: block; }
+    .search > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #121212; }
+    input { font: inherit; outline: none; -webkit-appearance: none; appearance: none; border: 0; }
+    #query {
+      width: 100%; height: 46px; padding: 0 44px; border-radius: 8px;
+      background: #fff; color: #121212; font-size: 16px; font-weight: 500;
+    }
+    #query::placeholder { color: #535353; }
+    #query::-webkit-search-cancel-button { display: none; }
+    #clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; color: #121212; display: none; }
+    #clear svg { margin: auto; }
+    #name {
+      margin-top: 8px; height: 32px; padding: 0 14px; border-radius: 999px;
+      background: var(--highlight); color: var(--ink); font-size: 13px; font-weight: 500; width: 100%;
+    }
+    #name::placeholder { color: var(--sub); }
+
+    .hero { margin: 6px -16px 0; padding: 22px 16px 18px; background: linear-gradient(var(--tint), var(--bg)); }
+    .hero .art-big { width: min(72vw, 300px); aspect-ratio: 1; margin: 0 auto; display: block; border-radius: 4px; object-fit: cover; box-shadow: 0 8px 32px rgba(0,0,0,.55); background: var(--highlight); }
+    .hero .title { margin-top: 22px; font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+    .hero .artist { color: var(--sub); font-size: 15px; margin-top: 2px; }
+    .playing-on { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--green); font-size: 13px; font-weight: 700; }
+    .progress { margin-top: 18px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.3); overflow: hidden; }
+    .progress div { height: 100%; width: 0; background: #fff; border-radius: 2px; }
+    .times { display: flex; justify-content: space-between; margin-top: 6px; color: var(--sub); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .controls { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+    .controls button { position: relative; width: 48px; height: 48px; display: grid; place-items: center; color: var(--ink); }
+    .controls .side { color: var(--sub); }
+    .controls .side.on { color: var(--green); }
+    .controls .side.on::after { content: ''; position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--green); }
+    .controls .big { width: 64px; height: 64px; border-radius: 50%; background: #fff; color: #000; }
+    .controls button:active, #mini button:active { transform: scale(.94); }
+    .idle { padding: 64px 8px; text-align: center; color: var(--sub); }
+    .idle b { display: block; color: var(--ink); font-size: 20px; margin-bottom: 6px; }
+
+    .chips { display: flex; gap: 8px; margin: 18px 0 2px; overflow-x: auto; scrollbar-width: none; }
+    .chip { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--highlight); font-size: 14px; font-weight: 500; }
+
+    #playlists { scroll-margin-top: 150px; }
+    .shelf { display: flex; gap: 14px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+    .shelf::-webkit-scrollbar { display: none; }
+    .card { flex: none; width: 140px; text-align: left; }
+    .card img, .card .art { display: block; width: 140px; height: 140px; border-radius: 6px; object-fit: cover; background: var(--highlight); }
+    .card .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card .name { margin-top: 8px; font-size: 14px; font-weight: 700; }
+    .more { margin-top: 8px; height: 32px; padding: 0 14px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--dim); font-size: 13px; font-weight: 700; }
+    .back { width: 40px; height: 40px; margin: 4px 0 0 -8px; display: grid; place-items: center; }
+    .cover { display: block; width: min(56vw, 230px); aspect-ratio: 1; height: auto; margin: 4px auto 0; border-radius: 4px; object-fit: cover; background: var(--highlight); box-shadow: 0 8px 32px rgba(0,0,0,.55); }
+    .list-title { margin-top: 20px; font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+    .list-bar { display: flex; align-items: center; justify-content: space-between; min-height: 56px; margin: 4px 0 8px; color: var(--sub); font-size: 14px; }
+    .play-all { width: 56px; height: 56px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: #000; }
+    .play-all:active { transform: scale(.94); }
+
+    h2 { margin: 26px 0 8px; font-size: 18px; font-weight: 700; }
+    h2 small { display: block; color: var(--sub); font-size: 13px; font-weight: 500; margin-top: 2px; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    .row { position: relative; overflow: hidden; }
+    .fg { position: relative; display: flex; align-items: center; gap: 12px; padding: 8px 0; background: var(--bg); touch-action: pan-y; }
+    .row img, .row .art { width: 48px; height: 48px; border-radius: 4px; flex: none; object-fit: cover; background: var(--highlight); }
+    .meta { flex: 1; min-width: 0; }
+    .meta .name, .meta .sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta .name { font-size: 16px; font-weight: 500; }
+    .meta .sub { color: var(--sub); font-size: 14px; }
+    .meta .sub .by { color: var(--green); }
+    .meta .sub .next { color: var(--green); font-weight: 700; }
+    .icon-btn { width: 44px; height: 44px; flex: none; display: grid; place-items: center; color: var(--sub); }
+    .icon-btn.added { color: var(--green); }
+    .icon-btn:disabled { opacity: .5; }
+    .handle { width: 44px; height: 48px; flex: none; display: grid; place-items: center; color: var(--sub); touch-action: none; cursor: grab; }
+    .del { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; background: var(--red); font-weight: 700; font-size: 14px; }
+    .pick.dragging { z-index: 2; }
+    .pick.dragging .fg { background: var(--highlight); box-shadow: 0 6px 20px rgba(0,0,0,.5); border-radius: 6px; }
+    .pick.settle, .pick.settle .fg { transition: transform .2s ease; }
+    .pick.gone { transition: height .2s ease, opacity .2s ease; height: 0 !important; opacity: 0; }
+    .skeleton .art, .skeleton .bar { animation: pulse 1.2s ease-in-out infinite; }
+    .skeleton .bar { height: 12px; border-radius: 6px; background: var(--highlight); margin: 7px 0; }
+    @keyframes pulse { 50% { opacity: .45; } }
+    .note { color: var(--sub); padding: 28px 0; text-align: center; }
+    #join { max-width: 420px; margin: 0 auto; padding: 18vh 24px 0; text-align: center; }
+    #join h1 { margin: 0 0 10px; font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+    #join p { margin: 0 0 24px; color: var(--sub); }
+    #join input {
+      width: 100%; padding: 14px 16px; border: 0; border-radius: 10px; background: var(--highlight); color: var(--ink);
+      font: 700 20px Figtree, sans-serif; letter-spacing: .14em; text-align: center; text-transform: uppercase;
+    }
+    #join button { width: 100%; margin-top: 12px; padding: 14px; border-radius: 999px; background: var(--green); color: #000; font-weight: 800; }
+
+    #mini {
+      position: fixed; left: 8px; right: 8px; bottom: calc(72px + env(safe-area-inset-bottom)); z-index: 4;
+      max-width: 544px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px;
+      border-radius: 8px; background: #2b2b2b; background: color-mix(in srgb, var(--tint) 70%, #000); box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    }
+    #mini[hidden] { display: none; }
+    #mini img, #mini .art { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+    #mini .meta .name { font-size: 14px; font-weight: 700; }
+    #mini .meta .sub { color: var(--green); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+    #mini { overflow: hidden; }
+    #mini button { width: 40px; height: 40px; flex: none; display: grid; place-items: center; }
+    #mini .line { position: absolute; left: 8px; right: 8px; bottom: 0; height: 2px; background: rgba(255,255,255,.3); border-radius: 1px; }
+    #mini .line div { height: 100%; width: 0; background: #fff; border-radius: 1px; }
+
+    #toast {
+      position: fixed; left: 50%; bottom: calc(144px + env(safe-area-inset-bottom)); z-index: 5;
+      transform: translate(-50%, 12px); opacity: 0; pointer-events: none; transition: transform .2s ease, opacity .2s ease;
+      max-width: calc(100% - 32px); padding: 12px 16px; border-radius: 8px;
+      background: #fff; color: #121212; font-weight: 700; font-size: 14px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    }
+    #toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    .tabs {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; justify-content: center;
+      padding-bottom: env(safe-area-inset-bottom); background: linear-gradient(transparent, rgba(0,0,0,.9) 30%);
+    }
+    .tabs button { flex: 1; max-width: 186px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--sub); font-size: 11px; font-weight: 700; }
+    .tabs button.on { color: var(--ink); }
+
+    /* Remote and game pads: nothing to select, zoom or long-press. */
+    .dpad, .pill { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .dpad { position: relative; width: min(80vw, 320px); aspect-ratio: 1; margin: 36px auto 28px; border-radius: 50%; background: var(--highlight); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+    .dpad button { position: absolute; display: grid; place-items: center; color: var(--sub); }
+    .dpad button.held { color: var(--green); }
+    .dpad .pad-up { left: 33%; top: 0; width: 34%; height: 32%; }
+    .dpad .pad-down { left: 33%; bottom: 0; width: 34%; height: 32%; }
+    .dpad .pad-left { top: 33%; left: 0; width: 32%; height: 34%; }
+    .dpad .pad-right { top: 33%; right: 0; width: 32%; height: 34%; }
+    .dpad .pad-down svg { transform: rotate(180deg); }
+    .dpad .pad-left svg { transform: rotate(-90deg); }
+    .dpad .pad-right svg { transform: rotate(90deg); }
+    .dpad .pad-ok { left: 31%; top: 31%; width: 38%; height: 38%; border-radius: 50%; background: #3e3e3e; color: var(--ink); font-size: 18px; font-weight: 800; }
+    .dpad .pad-ok.held { background: var(--green); color: #000; }
+    .pills { display: flex; gap: 12px; justify-content: center; }
+    .pill { height: 48px; padding: 0 26px; border-radius: 999px; background: var(--highlight); font-weight: 700; font-size: 15px; }
+    .pill:active, .pill.held { background: #3e3e3e; }
+    .pill.go { background: var(--green); color: #000; }
+    .touchpad { position: relative; width: 100%; aspect-ratio: 1; margin: 20px 0 8px; border-radius: 16px; background: var(--highlight); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overflow: hidden; }
+    .touchpad::after { content: 'Drag to move'; position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; color: var(--dim); font-size: 13px; pointer-events: none; }
+    .touchpad i { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--seat, var(--green)); opacity: .9; pointer-events: none; }
+    .kbd { display: block; width: 100%; height: 48px; margin: 22px 0 0; padding: 0 16px; border-radius: 8px; background: #fff; color: #121212; font-size: 17px; font-weight: 500; }
+    .kbd::placeholder { color: #535353; }
+    .volume { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 22px; }
+    .volume .pill { min-width: 64px; padding: 0 18px; font-size: 22px; }
+    .volume .pill.muted { background: var(--red); }
+    .volume span { min-width: 92px; text-align: center; color: var(--sub); font-size: 14px; font-weight: 700; }
+    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(86vw, 360px); margin: 20px auto 0; }
+    .board button { aspect-ratio: 1; border-radius: 12px; background: var(--highlight); font-size: 56px; font-weight: 800; }
+    .board button:disabled { opacity: 1; }
+    .board.wait button { opacity: .55; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .choices button { min-height: 110px; padding: 12px; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; line-height: 1.25; }
+    .choices button b { display: block; font-size: 13px; opacity: .8; margin-bottom: 4px; }
+    .choices.locked button:not(.mine), .choices.shown button:not(.right) { opacity: .3; }
+    .choices button.mine { box-shadow: inset 0 0 0 4px #fff; }
+    .race { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: min(72vw, 300px); margin: 16px auto 0; }
+    .race i { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; box-shadow: inset 0 0 0 2px #3a3a3c; font-style: normal; font-size: 26px; font-weight: 800; }
+    .race i.c { background: #538d4e; box-shadow: none; }
+    .race i.p { background: #b59f3b; box-shadow: none; }
+    .race i.a { background: #3a3a3c; box-shadow: none; }
+    .race i.typed { box-shadow: inset 0 0 0 2px #878a8c; }
+    .wkeys { margin-top: 16px; }
+    .wkeys div { display: flex; justify-content: center; gap: 5px; margin-top: 6px; }
+    .wkeys button { flex: 1; max-width: 40px; height: 54px; border-radius: 6px; background: #818384; color: #fff; font-size: 17px; font-weight: 700; touch-action: manipulation; }
+    .wkeys button.wide { max-width: 64px; flex: 1.5; font-size: 13px; }
+    .wkeys button.c { background: #538d4e; }
+    .wkeys button.p { background: #b59f3b; }
+    .wkeys button.a { background: #3a3a3c; }
+    .giveup { display: block; margin: 14px auto 0; padding: 10px 22px; border-radius: 999px; background: none; color: var(--sub); font-size: 14px; font-weight: 700; box-shadow: inset 0 0 0 1px #3e3e3e; }
+    .giveup[hidden] { display: none; }
+    .giveup.sure { color: #fff; background: var(--red); box-shadow: none; }
+    .race-msg { min-height: 18px; text-align: center; color: var(--sub); font-size: 14px; font-weight: 700; margin-top: 12px; }
+    .hint { text-align: center; color: var(--dim); font-size: 13px; margin-top: 18px; }
+
+    .on-tv { margin-top: 8px; padding: 16px; border-radius: 8px; background: var(--highlight); }
+    .on-tv small { display: block; color: var(--sub); font-size: 13px; font-weight: 500; }
+    .on-tv b { font-size: 20px; font-weight: 800; }
+    .seat { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-weight: 700; }
+    .seat i { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+    .seat span { color: var(--sub); font-weight: 500; margin-left: auto; }
+    .game-row { display: flex; align-items: center; width: 100%; padding: 14px 0; text-align: left; border-bottom: 1px solid #222; }
+    .game-row .meta .name { font-weight: 700; }
+    .game-row svg { color: var(--sub); }
+    #player { margin: 14px 0 0; width: 100%; height: 40px; padding: 0 14px; border-radius: 999px; background: #121212; color: var(--ink); font-size: 15px; }
+  </style>
+</head>
+<body>
+  <form id="join" hidden>
+    <h1>Which TV?</h1>
+    <p>Scan the QR code under CONNECT PHONE on your TV's home screen, or type the room code shown under it.</p>
+    <input id="join-code" placeholder="Room code" autocomplete="off" autocapitalize="characters" maxlength="9">
+    <button>Connect</button>
+  </form>
+  <main>
+    <section id="tab-remote" hidden>
+      <div class="top"><div class="bar"><h1>Remote</h1><div class="device" id="device-remote"></div></div></div>
+      <div id="remote-pad"></div>
+      <div class="pills" id="remote-pills"></div>
+      <div class="volume" id="remote-volume"></div>
+      <div id="remote-kbd"></div>
+      <div class="hint">Hold an arrow to keep moving.</div>
+    </section>
+    <section id="tab-games" hidden>
+      <div class="top"><div class="bar"><h1>Games</h1><div class="device" id="device-games"></div></div></div>
+      <div id="game-now"></div>
+      <div id="game-pad" hidden></div>
+      <div id="game-touch" hidden></div>
+      <div id="game-kbd" hidden></div>
+      <div id="game-board" hidden></div>
+      <div id="game-choice" hidden></div>
+      <div id="game-word" hidden></div>
+      <div id="game-list"></div>
+    </section>
+    <section id="tab-spotify" hidden>
+    <div class="top">
+      <div class="bar">
+        <h1>Jam</h1>
+        <div class="device" id="device"></div>
+      </div>
+      <label class="search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+        <input id="query" type="search" maxlength="200" placeholder="What do you want to listen to?" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button id="clear" type="button" aria-label="Clear search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </label>
+      <input id="name" maxlength="24" placeholder="Your name (optional)" autocomplete="nickname">
+    </div>
+    <div id="home">
+      <div id="now"></div>
+      <div id="chips" class="chips"></div>
+      <div id="queue"></div>
+      <div id="library"></div>
+    </div>
+    <div id="results" hidden></div>
+    <div id="list" hidden></div>
+    </section>
+  </main>
+  <div id="mini" hidden></div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="remote"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="8" r="2"/><path d="M10 14h4M10 17h4" stroke-linecap="round"/></svg> Remote</button>
+    <button data-tab="spotify"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg> Spotify</button>
+    <button data-tab="games"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8h12a4 4 0 0 1 4 4v1a4 4 0 0 1-7 2.6L14 15h-4l-1 .6A4 4 0 0 1 2 13v-1a4 4 0 0 1 4-4z"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 14h.01"/></svg> Games</button>
+  </nav>
+  <div id="toast"></div>
+  <script>
+    // Guests' side of the launcher's jam (app/js/jam.js). Requests are rows in the
+    // Supabase table `jam` that the TV answers; it also keeps a 'state' row with what's
+    // playing, the jam picks (reorderable, removable), Spotify's own upcoming tracks and
+    // an app-only Spotify token so search can go straight to Spotify. The publishable
+    // key is meant to be public.
+    const SUPABASE = 'https://jbvkjvdthuzofvmhwctv.supabase.co';
+    const KEY = 'sb_publishable_hbxcjbYF5H8py5gGLokxPg_tD9nGsNl';
+    // The TV's room, from its QR code (?room=) and remembered after, so this page
+    // reaches that TV and no other.
+    const ROOM = (() => {
+      const asked = (new URLSearchParams(location.search).get('room') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      try {
+        if (asked) localStorage.setItem('jam-room', asked);
+        return asked || localStorage.getItem('jam-room') || '';
+      } catch (e) { return asked; }
+    })();
+    const REST = SUPABASE + '/rest/v1/';
+    const $ = id => document.getElementById(id);
+    const ICON = {
+      speaker: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+      add: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9" stroke-linecap="round"/></svg>',
+      added: '<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="currentColor"/><path d="m7.5 12.2 3 3 6-6.4" fill="none" stroke="#121212" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      play: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a.8.8 0 0 0 1.2.7l12.2-7.5a.8.8 0 0 0 0-1.4L8.2 3.8A.8.8 0 0 0 7 4.5z"/></svg>',
+      pause: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="5.5" y="4" width="4.5" height="16" rx="1"/><rect x="14" y="4" width="4.5" height="16" rx="1"/></svg>',
+      prev: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="2.4" height="16" rx="1"/><path d="M20 4.8v14.4a.8.8 0 0 1-1.2.7L7.6 12.7a.8.8 0 0 1 0-1.4l11.2-7.2a.8.8 0 0 1 1.2.7z"/></svg>',
+      next: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="17.6" y="4" width="2.4" height="16" rx="1"/><path d="M4 4.8v14.4a.8.8 0 0 0 1.2.7l11.2-7.2a.8.8 0 0 0 0-1.4L5.2 4.1A.8.8 0 0 0 4 4.8z"/></svg>',
+      shuffle: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h3.5c4.5 0 6.5 12 11 12H21M3 18h3.5c1.8 0 3.1-1.9 4.3-4.3M13.2 10.3C14.4 7.9 15.7 6 17.5 6H21M18 3l3 3-3 3M18 15l3 3-3 3"/></svg>',
+      repeat: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 0 0 0 4-4v-1"/></svg>',
+      repeat1: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 0 0 0 4-4v-1"/><path d="M11 10.5l1.5-1v5.5" stroke-width="1.8"/></svg>',
+      chevron: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>',
+      go: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+      handle: '<svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16M4 12h16M4 16h16"/></svg>',
+      back: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>',
+    };
+    // A share link from the Spotify app: a song is looked up, an album or playlist opened.
+    const LINK = /(track|album|playlist)[/:]([A-Za-z0-9]{22})/;
+    let state = null, lastJson = '', searchSeq = 0, debounce = null, toastTimer = null, gesture = false, pendingEdits = 0;
+    let topSongs = null, topAsked = 0, browsing = null;
+    const addedUris = new Set();
+    const tints = {};
+
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+
+    function art(url, cls) {
+      const e = el(url ? 'img' : 'div', cls || 'art');
+      if (url) { e.src = url; e.alt = ''; }
+      return e;
+    }
+
+    function toast(text) {
+      $('toast').textContent = text;
+      $('toast').classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2400);
+    }
+
+    // Background colour from the album art, like Spotify's now-playing gradient.
+    function tint(url) {
+      if (!url) return;
+      if (tints[url]) return document.documentElement.style.setProperty('--tint', tints[url]);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = c.height = 12;
+          const g = c.getContext('2d');
+          g.drawImage(img, 0, 0, 12, 12);
+          const d = g.getImageData(0, 0, 12, 12).data;
+          let r = 0, gr = 0, b = 0;
+          for (let i = 0; i < d.length; i += 4) { r += d[i]; gr += d[i + 1]; b += d[i + 2]; }
+          const n = d.length / 4, max = Math.max(r, gr, b) / n || 1, k = Math.min(1.4, 150 / max);
+          tints[url] = 'rgb(' + [r, gr, b].map(v => Math.round(v / n * k)).join(',') + ')';
+          document.documentElement.style.setProperty('--tint', tints[url]);
+        } catch (e) {}
+      };
+      img.src = url;
+    }
+
+    function insert(row) {
+      return fetch(REST + 'jam', {
+        method: 'POST',
+        headers: { apikey: KEY, 'x-room': ROOM, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(Object.assign({ code: ROOM }, row)),
+      }).then(r => {
+        if (!r.ok) throw new Error("Couldn't reach the jam");
+        return r.json();
+      }).then(rows => rows[0].id);
+    }
+
+    // The TV checks for requests every second and writes its answer to `results`.
+    function answer(id) {
+      const started = Date.now();
+      return new Promise((resolve, reject) => {
+        (function check() {
+          fetch(REST + 'jam?select=results&id=eq.' + id, { headers: { apikey: KEY, 'x-room': ROOM } })
+            .then(r => r.json())
+            .then(rows => {
+              const res = rows[0] && rows[0].results;
+              if (res && res.error) return reject(new Error(res.error));
+              if (res) return resolve(res);
+              if (Date.now() - started > 12000) return reject(new Error("The TV isn't answering"));
+              setTimeout(check, 300);
+            }, reject);
+        })();
+      });
+    }
+
+    function request(row) {
+      return insert(row).then(answer);
+    }
+
+    function tvOn() {
+      // The TV rewrites its state at least once a minute while the launcher is open.
+      return !!(state && state.at && Date.now() - state.at < 150000);
+    }
+
+    // ---- Search --------------------------------------------------------------
+
+    function searchToken() {
+      const s = state && state.search;
+      return s && s.expires > Date.now() + 5000 ? s.token : null;
+    }
+
+    // Straight to Spotify when the TV has shared a token, otherwise through the TV.
+    function search(q) {
+      const token = searchToken();
+      if (!token || LINK.test(q)) return request({ kind: 'search', query: q });
+      return fetch('https://api.spotify.com/v1/search?type=track&limit=10&q=' + encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + token } })
+        .then(r => {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(d => d.tracks.items.map(t => ({
+          uri: t.uri,
+          name: t.name,
+          artist: t.artists[0].name,
+          image: (t.album.images[t.album.images.length - 1] || {}).url,
+        })))
+        .catch(() => request({ kind: 'search', query: q }));
+    }
+
+    // Remembered by song, so a list drawn again still shows what's been added.
+    function markAdded(btn) {
+      btn.innerHTML = ICON.added;
+      btn.classList.add('added');
+      btn.onclick = null;
+    }
+
+    function addButton(t) {
+      const btn = el('button', 'icon-btn');
+      btn.innerHTML = ICON.add;
+      btn.setAttribute('aria-label', 'Add to queue');
+      if (addedUris.has(t.uri)) {
+        markAdded(btn);
+        return btn;
+      }
+      btn.onclick = () => {
+        btn.disabled = true;
+        request({ kind: 'add', query: t.uri, name: $('name').value.trim().slice(0, 24) || null, title: (t.name + ' - ' + t.artist).slice(0, 200) })
+          .then(() => {
+            btn.disabled = false;
+            addedUris.add(t.uri);
+            markAdded(btn);
+            toast('Added to queue');
+            setTimeout(loadState, 1200);
+          }, err => {
+            btn.disabled = false;
+            toast(err.message);
+          });
+      };
+      return btn;
+    }
+
+    function resultRow(t) {
+      const li = el('li', 'row');
+      const fg = el('div', 'fg');
+      const meta = el('div', 'meta');
+      meta.append(el('div', 'name', t.name), el('div', 'sub', 'Song • ' + t.artist));
+      fg.append(art(t.image), meta, addButton(t));
+      li.append(fg);
+      return li;
+    }
+
+    function skeleton() {
+      const ul = el('ul', 'skeleton');
+      for (let i = 0; i < 6; i++) {
+        const li = el('li', 'row'), fg = el('div', 'fg'), meta = el('div', 'meta');
+        const a = el('div', 'bar'), b = el('div', 'bar');
+        a.style.width = (45 + i * 37 % 35) + '%';
+        b.style.width = (20 + i * 13 % 20) + '%';
+        meta.append(a, b);
+        fg.append(el('div', 'art'), meta);
+        li.append(fg);
+        ul.append(li);
+      }
+      return ul;
+    }
+
+    // Results follow what's typed; only the latest search is shown.
+    function onQuery(immediate) {
+      let q = $('query').value.trim();
+      const link = LINK.exec(q);
+      if (link && link[1] !== 'track') {
+        $('query').value = q = '';
+        $('query').blur();
+        openList({ id: (link[1] === 'album' ? 'album:' : '') + link[2] });
+      }
+      $('clear').style.display = q ? 'block' : 'none';
+      showView();
+      clearTimeout(debounce);
+      if (!q) return;
+      const seq = ++searchSeq;
+      if (!$('results').firstChild) $('results').append(skeleton());
+      debounce = setTimeout(() => {
+        search(q).then(tracks => {
+          if (seq !== searchSeq) return;
+          const box = $('results');
+          box.textContent = '';
+          if (!tracks.length) return box.append(el('div', 'note', 'No songs found for "' + q + '"'));
+          const ul = el('ul');
+          tracks.forEach(t => ul.append(resultRow(t)));
+          box.append(ul);
+        }, err => {
+          if (seq !== searchSeq) return;
+          $('results').textContent = '';
+          $('results').append(el('div', 'note', err.message));
+        });
+      }, immediate === true ? 0 : searchToken() ? 120 : 350);
+    }
+
+    // ---- Queue ---------------------------------------------------------------
+
+    function edit(op) {
+      pendingEdits++;
+      request({ kind: 'edit', query: JSON.stringify(op) })
+        .catch(err => toast(err.message))
+        .then(() => {
+          pendingEdits--;
+          lastJson = '';
+          loadState();
+        });
+    }
+
+    function pickRow(p) {
+      const li = el('li', 'row pick');
+      const fg = el('div', 'fg');
+      const meta = el('div', 'meta');
+      const sub = el('div', 'sub');
+      if (p.handed) sub.append(el('span', 'next', 'Playing next'), ' • ');
+      sub.append(p.artist);
+      if (p.by) sub.append(' • ', el('span', 'by', p.by));
+      meta.append(el('div', 'name', p.name), sub);
+      fg.append(art(p.image), meta);
+      if (!p.handed) {
+        const handle = el('div', 'handle');
+        handle.innerHTML = ICON.handle;
+        fg.append(handle);
+        li.append(el('div', 'del', 'Remove'));
+        swipeToRemove(li, fg, p);
+        dragToReorder(li, handle, p);
+      }
+      li.append(fg);
+      return li;
+    }
+
+    // Swipe a pick left past a third of the row to remove it.
+    function swipeToRemove(li, fg, p) {
+      let x0, y0, dx, mode = null;
+      fg.addEventListener('pointerdown', e => {
+        if (e.target.closest('.handle')) return;
+        x0 = e.clientX; y0 = e.clientY; dx = 0; mode = 'maybe';
+      });
+      fg.addEventListener('pointermove', e => {
+        if (!mode) return;
+        dx = Math.min(0, e.clientX - x0);
+        if (mode === 'maybe') {
+          if (Math.abs(e.clientY - y0) > 10) { mode = null; return; }
+          if (Math.abs(e.clientX - x0) < 10) return;
+          mode = 'swipe';
+          gesture = true;
+          fg.setPointerCapture(e.pointerId);
+        }
+        fg.style.transform = 'translateX(' + dx + 'px)';
+      });
+      const end = () => {
+        if (mode !== 'swipe') { mode = null; return; }
+        mode = null;
+        gesture = false;
+        li.classList.add('settle');
+        if (dx < -li.offsetWidth / 3) {
+          fg.style.transform = 'translateX(-100%)';
+          li.style.height = li.offsetHeight + 'px';
+          requestAnimationFrame(() => li.classList.add('gone'));
+          setTimeout(() => li.remove(), 220);
+          state.picks = state.picks.filter(q => q.id !== p.id);
+          edit({ op: 'remove', id: p.id });
+        } else {
+          fg.style.transform = '';
+          setTimeout(() => li.classList.remove('settle'), 220);
+        }
+      };
+      fg.addEventListener('pointerup', end);
+      fg.addEventListener('pointercancel', end);
+    }
+
+    // Drag a pick by its handle to move it, like Spotify's queue.
+    function dragToReorder(li, handle, p) {
+      handle.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        const ul = li.parentNode, rows = Array.from(ul.children);
+        const from = rows.indexOf(li), h = li.offsetHeight, y0 = e.clientY;
+        const first = state.picks[0] && state.picks[0].handed ? 1 : 0;
+        let to = from;
+        gesture = true;
+        li.classList.add('dragging');
+        handle.setPointerCapture(e.pointerId);
+        const move = ev => {
+          const dy = ev.clientY - y0;
+          to = Math.max(first, Math.min(rows.length - 1, from + Math.round(dy / h)));
+          li.style.transform = 'translateY(' + dy + 'px)';
+          rows.forEach((r, k) => {
+            if (r === li) return;
+            const shift = from < k && k <= to ? -h : to <= k && k < from ? h : 0;
+            r.classList.add('settle');
+            r.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
+          });
+        };
+        const up = () => {
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', up);
+          handle.removeEventListener('pointercancel', up);
+          rows.forEach(r => { r.classList.remove('settle'); r.style.transform = ''; });
+          li.style.transform = '';
+          li.classList.remove('dragging');
+          gesture = false;
+          if (to === from) return;
+          ul.insertBefore(li, to > from ? rows[to].nextSibling : rows[to]);
+          state.picks.splice(to, 0, state.picks.splice(from, 1)[0]);
+          edit({ op: 'move', id: p.id, to });
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+      });
+    }
+
+    function simpleRow(t) {
+      const li = el('li', 'row');
+      const fg = el('div', 'fg');
+      const meta = el('div', 'meta');
+      meta.append(el('div', 'name', t.name), el('div', 'sub', t.artist));
+      fg.append(art(t.image), meta);
+      li.append(fg);
+      return li;
+    }
+
+    // ---- Home ----------------------------------------------------------------
+
+    function renderNow() {
+      const box = $('now');
+      box.textContent = '';
+      const now = state && state.now;
+      if (!now) {
+        const idle = el('div', 'idle');
+        idle.append(el('b', null, tvOn() ? 'Nothing playing' : 'The TV is off'));
+        idle.append(tvOn() ? 'Add a song to get things going.' : 'Songs can be added once the launcher is open.');
+        box.append(idle);
+        return;
+      }
+      tint(now.image);
+      const hero = el('div', 'hero');
+      const on = el('div', 'playing-on');
+      on.innerHTML = ICON.speaker;
+      on.append('Playing on TV');
+      hero.append(art(now.image, 'art-big'), el('div', 'title', now.name), el('div', 'artist', now.artist), on, player());
+      box.append(hero);
+    }
+
+    function button(cls, label, onclick) {
+      const b = el('button', cls);
+      b.setAttribute('aria-label', label);
+      b.onclick = onclick;
+      return b;
+    }
+
+    function player() {
+      const box = el('div');
+      const bar = el('div', 'progress'), times = el('div', 'times'), controls = el('div', 'controls');
+      bar.append(el('div', 'fill'));
+      times.append(el('span', 'at'), el('span', 'left'));
+      const prev = button('', 'Previous', () => control({ op: 'prev' }));
+      const next = button('', 'Next', () => control({ op: 'next' }));
+      prev.innerHTML = ICON.prev;
+      next.innerHTML = ICON.next;
+      controls.append(
+        button('side shuffle', 'Shuffle', () => control({ op: 'shuffle', to: !state.playback.shuffle })),
+        prev,
+        button('big toggle', 'Play or pause', toggle),
+        next,
+        button('side repeat', 'Repeat', () => {
+          const order = ['off', 'context', 'track'];
+          control({ op: 'repeat', to: order[(order.indexOf(state.playback.repeat) + 1) % 3] });
+        }));
+      box.append(bar, times, controls);
+      return box;
+    }
+
+    // Where the song is now, carried on from the TV's last report.
+    function position() {
+      const p = state && state.playback;
+      if (!p) return 0;
+      return Math.max(0, Math.min(p.duration, p.progress + (p.playing ? Date.now() - state.at : 0)));
+    }
+
+    function clock(ms) {
+      const s = Math.floor(ms / 1000);
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function renderPlayback() {
+      const p = state && state.playback;
+      if (!p) return;
+      const at = position(), pct = (p.duration ? at / p.duration * 100 : 0) + '%';
+      document.querySelectorAll('.fill, #mini .line div').forEach(f => { f.style.width = pct; });
+      document.querySelectorAll('.at').forEach(e => { e.textContent = clock(at); });
+      document.querySelectorAll('.left').forEach(e => { e.textContent = '-' + clock(p.duration - at); });
+      document.querySelectorAll('.toggle').forEach(b => {
+        const icon = p.playing ? 'pause' : 'play';
+        if (b.dataset.icon !== icon) { b.dataset.icon = icon; b.innerHTML = ICON[icon]; }
+      });
+      document.querySelectorAll('.shuffle').forEach(b => {
+        b.classList.toggle('on', !!p.shuffle);
+        if (!b.firstChild) b.innerHTML = ICON.shuffle;
+      });
+      document.querySelectorAll('.repeat').forEach(b => {
+        const icon = p.repeat === 'track' ? 'repeat1' : 'repeat';
+        b.classList.toggle('on', p.repeat !== 'off');
+        if (b.dataset.icon !== icon) { b.dataset.icon = icon; b.innerHTML = ICON[icon]; }
+      });
+    }
+
+    // Buttons change the screen straight away; the TV's answer then confirms it.
+    function control(op) {
+      const p = state.playback;
+      if (op.op === 'play' || op.op === 'pause') {
+        p.progress = position();
+        state.at = Date.now();
+        p.playing = op.op === 'play';
+      } else if (op.op === 'shuffle') {
+        p.shuffle = op.to;
+      } else if (op.op === 'repeat') {
+        p.repeat = op.to;
+      }
+      renderPlayback();
+      edit(op);
+    }
+
+    function toggle() {
+      control({ op: state.playback.playing ? 'pause' : 'play' });
+    }
+
+    function renderChips() {
+      const box = $('chips');
+      box.textContent = '';
+      const chip = (label, onclick) => {
+        const c = el('button', 'chip', label);
+        c.onclick = onclick;
+        box.append(c);
+      };
+      if (topSongs) chip('Top songs', () => openList({ name: 'Top songs', sub: TOP_SUB, tracks: topSongs }));
+      chip('Playlists', () => $('playlists').scrollIntoView({ behavior: 'smooth' }));
+      const now = state && state.now;
+      if (now && now.artist) chip('More from ' + now.artist, () => searchFor(now.artist));
+    }
+
+    function searchFor(q) {
+      $('query').value = q;
+      onQuery(true);
+    }
+
+    // ---- Browse: top songs and Spotify's own playlists ---------------------------
+
+    const TOP_SUB = 'Most played in the US right now';
+    // Spotify doesn't let apps list the songs in its own playlists, so these are played
+    // whole on the TV. Covers come from Spotify's public oEmbed, so they stay current.
+    const PLAYLISTS = [
+      ['Party', [['37i9dQZF1DXaXB8fQg7xif', 'Dance Party'], ['37i9dQZF1DX0BcQWzuB7ZO', 'Dance Hits'], ['37i9dQZF1DXcBWIGoYBM5M', "Today's Top Hits"], ['37i9dQZF1DXdPec7aLTmlC', 'Happy Hits!'], ['37i9dQZF1DX3rxVfibe1L0', 'Mood Booster'], ['37i9dQZF1DWWMOmoXKqHTD', 'Songs to Sing in the Car']]],
+      ['Throwbacks', [['37i9dQZF1DX4o1oenSJRJd', 'All Out 2000s'], ['37i9dQZF1DX5Ejj0EkURtP', 'All Out 2010s'], ['37i9dQZF1DXbTxeAdrVG2l', 'All Out 90s'], ['37i9dQZF1DX4UtSsGT1Sbe', 'All Out 80s'], ['37i9dQZF1DWXRqgorJj26U', 'Rock Classics']]],
+      ['Chill', [['37i9dQZF1DX4WYpdgoIcn6', 'Chill Hits'], ['37i9dQZF1DWWQRwui0ExPn', 'lofi beats'], ['37i9dQZF1DX4sWSpwq3LiO', 'Peaceful Piano'], ['37i9dQZF1DWZeKCadgRdKQ', 'Deep Focus']]],
+      ['Charts and genres', [['37i9dQZEVXbLRQDuF5jeBp', 'Top 50 USA'], ['37i9dQZEVXbMDoHDwVN2tF', 'Top 50 Global'], ['37i9dQZF1DX0XUsuxWHRQd', 'RapCaviar'], ['37i9dQZF1DX10zKzsJ2jva', 'Viva Latino'], ['37i9dQZF1DX1lVhptIYRda', 'Hot Country']]],
+    ];
+    const covers = {};
+
+    function loadTop() {
+      if (topSongs || !tvOn() || Date.now() - topAsked < 30000) return;
+      topAsked = Date.now();
+      request({ kind: 'edit', query: JSON.stringify({ op: 'top' }) }).then(res => {
+        if (!res.tracks.length) return;
+        topSongs = res.tracks;
+        renderChips();
+        renderLibrary();
+      }, () => {});
+    }
+
+    function coverArt(id, cls) {
+      const e = art(covers[id], cls);
+      if (!covers[id]) {
+        fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/playlist/' + id)
+          .then(r => r.json())
+          .then(d => {
+            covers[id] = d.thumbnail_url;
+            e.replaceWith(art(covers[id], cls));
+          })
+          .catch(() => {});
+      }
+      return e;
+    }
+
+    function card(cover, name, onclick) {
+      const c = el('button', 'card');
+      c.append(cover, el('div', 'name', name));
+      c.onclick = onclick;
+      return c;
+    }
+
+    function renderLibrary() {
+      const box = $('library');
+      box.textContent = '';
+      if (topSongs) {
+        const h = el('h2', null, 'Top songs');
+        h.append(el('small', null, TOP_SUB));
+        const ul = el('ul');
+        topSongs.slice(0, 5).forEach(t => ul.append(resultRow(t)));
+        const more = el('button', 'more', 'Show all');
+        more.onclick = () => openList({ name: 'Top songs', sub: TOP_SUB, tracks: topSongs });
+        box.append(h, ul, more);
+      }
+      PLAYLISTS.forEach(([title, lists], i) => {
+        const shelf = el('div', 'shelf');
+        lists.forEach(([id, name]) => shelf.append(card(coverArt(id), name, () => openList({
+          name,
+          image: covers[id],
+          uri: 'spotify:playlist:' + id,
+          sub: 'Playlist by Spotify',
+          tracks: [],
+          note: "Spotify doesn't let apps list the songs in its own playlists. Play it on the TV, then add songs on top from search.",
+        }))));
+        const h = el('h2', null, title);
+        if (!i) {
+          h.id = 'playlists';
+          h.append(el('small', null, 'Spotify playlists to play on the TV'));
+        }
+        box.append(h, shelf);
+      });
+    }
+
+    // A playlist or album fills the page, a page of songs at a time; lists already on
+    // the phone (top songs, Spotify's playlists) show straight away. The
+    // phone's back gesture closes it.
+    function openList(list) {
+      if (!browsing) history.pushState({ list: true }, '');
+      browsing = list;
+      renderList();
+      showView();
+      window.scrollTo(0, 0);
+      if (!list.tracks) loadMore();
+    }
+
+    function loadMore() {
+      const v = browsing;
+      v.loading = true;
+      renderList();
+      request({ kind: 'edit', query: JSON.stringify({ op: 'list', id: v.id, offset: v.next || 0 }) })
+        .then(res => {
+          ['name', 'image', 'uri', 'sub'].forEach(k => { v[k] = v[k] || res[k]; });
+          v.tracks = (v.tracks || []).concat(res.tracks);
+          v.next = res.next;
+        }, err => { v.error = err.message; })
+        .then(() => {
+          v.loading = false;
+          if (browsing === v) renderList();
+        });
+    }
+
+    function renderList() {
+      const box = $('list'), v = browsing;
+      box.textContent = '';
+      if (!v) return;
+      const back = button('back', 'Back', () => history.back());
+      back.innerHTML = ICON.back;
+      box.append(back);
+      if (v.image) box.append(art(v.image, 'cover'));
+      box.append(el('div', 'list-title', v.name || ''));
+      const bar = el('div', 'list-bar');
+      bar.append(el('span', null, v.sub || ''));
+      if (v.uri) {
+        const play = button('play-all', 'Play on the TV', () => {
+          edit({ op: 'context', uri: v.uri });
+          toast('Playing ' + v.name + ' on the TV');
+        });
+        play.innerHTML = ICON.play;
+        bar.append(play);
+      }
+      box.append(bar);
+      if (v.tracks && v.tracks.length) {
+        const ul = el('ul');
+        v.tracks.forEach(t => ul.append(resultRow(t)));
+        box.append(ul);
+      }
+      if (v.error) box.append(el('div', 'note', v.error));
+      else if (v.loading) box.append(skeleton());
+      else if (v.next) {
+        const more = el('button', 'more', 'Show more');
+        more.onclick = loadMore;
+        box.append(more);
+      } else if (v.note) box.append(el('div', 'note', v.note));
+      else if (v.tracks && !v.tracks.length) box.append(el('div', 'note', 'No songs here'));
+    }
+
+    window.addEventListener('popstate', () => {
+      if (!browsing) return;
+      browsing = null;
+      renderList();
+      showView();
+    });
+
+    // Search results cover everything; an open list covers the home view.
+    function showView() {
+      const q = $('query').value.trim();
+      $('results').hidden = !q;
+      $('list').hidden = !!q || !browsing;
+      $('home').hidden = !!q || !!browsing;
+      renderMini();
+    }
+
+    function renderQueue() {
+      const box = $('queue');
+      box.textContent = '';
+      const picks = (state && state.picks) || [], next = (state && state.next) || [];
+      if (picks.length) {
+        const h = el('h2', null, 'Next in queue');
+        h.append(el('small', null, 'Drag to reorder, swipe left to remove'));
+        const ul = el('ul');
+        picks.forEach(p => ul.append(pickRow(p)));
+        box.append(h, ul);
+      }
+      if (next.length) {
+        const ul = el('ul');
+        next.forEach(t => ul.append(simpleRow(t)));
+        box.append(el('h2', null, 'Next from Spotify'), ul);
+      }
+    }
+
+    function renderMini() {
+      const mini = $('mini'), now = state && state.now;
+      mini.hidden = !now || !$('home').hidden || tab !== 'spotify';
+      if (mini.hidden) return;
+      mini.textContent = '';
+      const meta = el('div', 'meta');
+      const sub = el('div', 'sub');
+      sub.innerHTML = ICON.speaker;
+      sub.append('TV');
+      meta.append(el('div', 'name', now.name + ' • ' + now.artist), sub);
+      const line = el('div', 'line');
+      line.append(el('div'));
+      mini.append(art(now.image), meta, button('toggle', 'Play or pause', toggle), line);
+      renderPlayback();
+    }
+
+    function renderDevice() {
+      const on = tvOn();
+      $('device').className = on ? 'device on' : 'device';
+      $('device').innerHTML = ICON.speaker;
+      $('device').append(on ? 'TV' : 'TV off');
+    }
+
+    function loadState() {
+      return fetch(REST + 'jam?select=results&kind=eq.state&code=eq.' + ROOM, { headers: { apikey: KEY, 'x-room': ROOM } })
+        .then(r => r.json())
+        .then(rows => {
+          const res = (rows[0] && rows[0].results) || null;
+          // Nothing changes before the TV has applied an edit, and nothing is redrawn
+          // under a finger. The song's position moves every report, so it only
+          // updates the player.
+          if (pendingEdits) return;
+          const json = JSON.stringify(Object.assign({}, res, { playback: undefined, at: undefined }));
+          if (state && res) {
+            state.playback = res.playback;
+            state.at = res.at;
+          }
+          renderDevice();
+          renderPlayback();
+          loadTop();
+          if (json === lastJson || gesture) return;
+          lastJson = json;
+          state = res;
+          renderNow();
+          renderChips();
+          renderQueue();
+          renderMini();
+          renderPlayback();
+        })
+        .catch(() => {});
+    }
+
+    $('query').addEventListener('input', onQuery);
+    $('query').addEventListener('keydown', e => { if (e.key === 'Enter') { $('query').blur(); onQuery(true); } });
+    $('clear').onclick = () => { $('query').value = ''; $('results').textContent = ''; onQuery(); $('query').focus(); };
+    try { $('name').value = localStorage.getItem('jam-name') || ''; } catch (e) {}
+    $('name').addEventListener('input', () => {
+      try { localStorage.setItem('jam-name', $('name').value.trim()); } catch (e) {}
+    });
+
+    // ---- TV link: Remote and Games tabs --------------------------------------
+    // Supabase Realtime broadcast, a websocket straight to the TV (app/js/remote.js):
+    // presses land in a tenth of a second, where request rows take a second or more.
+    // The TV broadcasts what it's showing; phones send presses and picks back.
+    const TOPIC = 'realtime:tv-' + ROOM;
+    let ws = null, linked = false, wsRef = 0, tv = null, wantSeat = false, tab = 'remote';
+    const ME = (() => {
+      try {
+        let id = localStorage.getItem('jam-id');
+        if (!id) localStorage.setItem('jam-id', id = Math.random().toString(36).slice(2, 10));
+        return id;
+      } catch (e) { return Math.random().toString(36).slice(2, 10); }
+    })();
+
+    function raw(msg) {
+      msg.ref = String(++wsRef);
+      ws.send(JSON.stringify(msg));
+    }
+
+    // Addressed to whichever app on the TV last said it's in front.
+    function send(event, payload) {
+      payload = Object.assign({ app: tv && tv.app }, payload);
+      if (linked) raw({ topic: TOPIC, event: 'broadcast', payload: { type: 'broadcast', event, payload } });
+    }
+
+    function connect() {
+      if (ws) return;
+      ws = new WebSocket(SUPABASE.replace(/^http/, 'ws') + '/realtime/v1/websocket?vsn=1.0.0&apikey=' + KEY);
+      ws.onopen = () => raw({ topic: TOPIC, event: 'phx_join', payload: { config: { broadcast: { self: false }, presence: { key: '' }, private: false } } });
+      ws.onmessage = m => {
+        const msg = JSON.parse(m.data);
+        if (msg.event === 'phx_reply' && msg.topic === TOPIC && msg.payload.status === 'ok' && !linked) {
+          linked = true;
+          send('hello', { app: null });
+        } else if (msg.event === 'broadcast' && msg.payload.event === 'state') {
+          tv = msg.payload.payload;
+          tv.seen = Date.now();
+          renderGames();
+        }
+      };
+      ws.onclose = () => {
+        ws = null;
+        linked = false;
+        setTimeout(connect, document.hidden ? 8000 : 1500);
+      };
+    }
+
+    // A locked phone's socket can die quietly; coming back reconnects straight away.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      if (ws && ws.readyState > 1) ws = null;
+      connect();
+      send('hello', { app: null });
+    });
+    setInterval(() => { if (ws && ws.readyState === 1) raw({ topic: 'phoenix', event: 'heartbeat', payload: {} }); }, 25000);
+
+    // The TV re-sends its state at least every 20 seconds while the launcher is open.
+    function tvLive() {
+      return !!(tv && Date.now() - tv.seen < 45000);
+    }
+
+    function buzz() {
+      if (navigator.vibrate) navigator.vibrate(8);
+    }
+
+    // Press and release go to the TV like a real remote's; a held arrow repeats.
+    function holdable(b, onDown, onUp, repeats) {
+      let timer = null, held = false;
+      const up = () => {
+        if (!held) return;
+        held = false;
+        clearTimeout(timer);
+        b.classList.remove('held');
+        onUp();
+      };
+      b.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        b.setPointerCapture(e.pointerId);
+        held = true;
+        b.classList.add('held');
+        buzz();
+        onDown(false);
+        if (repeats) timer = setTimeout(function again() { onDown(true); timer = setTimeout(again, 110); }, 400);
+      });
+      b.addEventListener('pointerup', up);
+      b.addEventListener('pointercancel', up);
+      b.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    function dpad(onKey) {
+      const box = el('div', 'dpad');
+      ['up', 'left', 'ok', 'right', 'down'].forEach(k => {
+        const b = button('pad-' + k, k === 'ok' ? 'OK' : k, null);
+        if (k === 'ok') b.textContent = 'OK';
+        else b.innerHTML = ICON.chevron;
+        holdable(b, repeat => onKey(k, true, repeat), () => onKey(k, false), k !== 'ok');
+        box.append(b);
+      });
+      return box;
+    }
+
+    function sendKey(k, down, repeat) {
+      send('key', { k, down, repeat: !!repeat });
+    }
+
+    function pill(label, onDown, cls) {
+      const b = button('pill' + (cls ? ' ' + cls : ''), label, null);
+      b.textContent = label;
+      holdable(b, repeat => { if (!repeat) onDown(); }, () => {});
+      return b;
+    }
+
+    function renderLink() {
+      const on = tvLive();
+      ['device-remote', 'device-games'].forEach(id => {
+        $(id).className = on ? 'device on' : 'device';
+        $(id).innerHTML = ICON.speaker;
+        $(id).append(on ? 'TV' : linked ? 'TV off' : 'Connecting');
+      });
+    }
+
+    function playerName() {
+      return ($('name').value.trim() || '').slice(0, 12);
+    }
+
+    function currentGame() {
+      return tvLive() && tv.games.find(g => g.key === tv.screen);
+    }
+
+    function mySeat() {
+      return tv && tv.game && tv.game.players && tv.game.players.find(p => p.id === ME);
+    }
+
+    // Typing on the phone types on the TV: each change to the box goes over as
+    // backspaces and new letters, and Enter as Enter (which also clears the box).
+    function keyboard(placeholder) {
+      const input = el('input', 'kbd');
+      input.placeholder = placeholder;
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.setAttribute('autocapitalize', 'off');
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('enterkeyhint', 'send');
+      let prev = '';
+      input.addEventListener('input', () => {
+        const now = input.value;
+        let i = 0;
+        while (i < prev.length && i < now.length && prev[i] === now[i]) i++;
+        const back = prev.length - i, text = now.slice(i);
+        prev = now;
+        if (back || text) send('type', { back, text });
+      });
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          send('type', { enter: true });
+          input.value = prev = '';
+        } else if (e.key === 'Backspace' && !input.value) send('type', { back: 1 }); // past what's in the box
+      });
+      return input;
+    }
+
+    // TV volume: hold + or - to keep going.
+    function volumeRow() {
+      const box = el('div', 'volume');
+      const btn = (label, change, repeats) => {
+        const b = button('pill', label, null);
+        b.textContent = label;
+        holdable(b, () => send('volume', { change }), () => {}, repeats);
+        return b;
+      };
+      const mute = btn('Mute', 'mute', false);
+      mute.style.fontSize = '15px';
+      box.append(btn('−', 'down', true), el('span', null, 'Volume'), btn('+', 'up', true), mute);
+      return box;
+    }
+
+    function renderVolume() {
+      const v = tvLive() && tv.volume, box = $('remote-volume').firstChild;
+      box.querySelector('span').textContent = v ? (v.muted ? 'Muted' : 'Volume ' + v.level) : 'Volume';
+      box.lastChild.classList.toggle('muted', !!(v && v.muted));
+    }
+
+    function renderBoard(state) {
+      const box = $('game-board');
+      box.textContent = '';
+      if (!state.board) return;
+      const myTurn = state.turn === ME;
+      const grid = el('div', 'board' + (myTurn ? '' : ' wait'));
+      state.board.forEach((seat, i) => {
+        const b = button('', 'Square ' + (i + 1), () => { if (myTurn && seat == null) send('place', { id: ME, i }); });
+        if (seat != null) {
+          b.textContent = seat ? 'O' : 'X';
+          b.style.color = state.players[seat].color;
+        }
+        b.disabled = !myTurn || seat != null;
+        grid.append(b);
+      });
+      const who = state.players.find(p => p.id === state.turn);
+      box.append(el('div', 'hint', myTurn ? 'Your turn' : who ? who.name + "'s turn" : ' '), grid);
+    }
+
+    let myAnswer = null; // [question number, answer index]
+    function renderChoices(state) {
+      const box = $('game-choice');
+      box.textContent = '';
+      if (!state.q) return box.append(el('div', 'hint', 'Waiting for the next question…'));
+      const mine = myAnswer && myAnswer[0] === state.q.n ? myAnswer[1] : null;
+      const shown = state.q.correct != null;
+      const grid = el('div', 'choices' + (shown ? ' shown' : mine != null ? ' locked' : ''));
+      ['#e21b3c', '#1368ce', '#d89e00', '#26890c'].forEach((color, i) => {
+        const b = button(i === mine ? 'mine' : '', 'Answer ' + 'ABCD'[i], () => {
+          if (mine != null || shown) return;
+          myAnswer = [state.q.n, i];
+          buzz();
+          send('answer', { id: ME, i });
+          gamesJson = '';
+          renderGames();
+        });
+        if (shown && i === state.q.correct) b.classList.add('right');
+        b.style.background = color;
+        b.append(el('b', null, 'ABCD'[i]), state.q.answers[i]);
+        grid.append(b);
+      });
+      const me = mySeat();
+      const line = shown ? (mine === state.q.correct ? 'Right! +' + me.gain : mine == null ? 'Too slow' : 'Wrong') : mine != null ? 'Locked in' : 'Question ' + state.q.n + ' of ' + state.q.of;
+      box.append(el('div', 'hint', line + (me ? ' · ' + me.score + ' points' : '')), grid);
+    }
+
+    // Wordle on the phone: the grid and Wordle's own keyboard, for solo and the race.
+    // Solo is played on the TV, so keys go over as typing and the grid comes back in the
+    // state. In the race the TV only knows the colours everyone has, so this phone keeps
+    // its own words: a guess counts once its row shows up in the state, and `miss` going
+    // up means the TV didn't know the word.
+    let race = { round: null, words: [], pending: null, miss: 0, draft: '', msg: '' }, wordState = null;
+    const wordMsg = el('div', 'race-msg'), wordGrid = el('div', 'race'), wordKeys = el('div', 'wkeys');
+    ['QWERTYUIOP', 'ASDFGHJKL', '+ZXCVBNM-'].forEach(row => {
+      const line = el('div');
+      row.split('').forEach(ch => {
+        const k = ch === '+' ? 'ENTER' : ch === '-' ? 'DEL' : ch;
+        const b = button(k.length > 1 ? 'wide' : '', k, () => { buzz(); wordKey(k); });
+        b.textContent = k === 'DEL' ? '⌫' : k === 'ENTER' ? 'Enter' : k;
+        b.dataset.k = k;
+        line.append(b);
+      });
+      wordKeys.append(line);
+    });
+    // Two taps, so a stray one doesn't end the game.
+    let sureTimer = null;
+    const giveUpBtn = button('giveup', 'Give up', () => {
+      if (!giveUpBtn.classList.contains('sure')) {
+        giveUpBtn.classList.add('sure');
+        giveUpBtn.textContent = 'Tap again to give up';
+        sureTimer = setTimeout(resetGiveUp, 3000);
+        return;
+      }
+      resetGiveUp();
+      send('giveup', { id: ME });
+    });
+    function resetGiveUp() {
+      clearTimeout(sureTimer);
+      giveUpBtn.classList.remove('sure');
+      giveUpBtn.textContent = 'Give up';
+    }
+    resetGiveUp();
+    $('game-word').append(wordMsg, wordGrid, wordKeys, giveUpBtn);
+
+    function wordKey(k) {
+      const state = wordState;
+      if (!state) return;
+      if (state.mode === 'solo') return send('type', k === 'ENTER' ? { enter: true } : k === 'DEL' ? { back: 1 } : { text: k });
+      const me = mySeat();
+      if (state.mode !== 'play' || !me || me.solved || (me.rows || []).length === 6) return;
+      race.msg = '';
+      if (k === 'DEL') race.draft = race.draft.slice(0, -1);
+      else if (k !== 'ENTER') { if (race.draft.length < 5) race.draft += k; }
+      else if (race.pending) return;
+      else if (race.draft.length < 5) race.msg = 'Not enough letters';
+      else {
+        race.pending = race.draft;
+        race.draft = '';
+        send('guess', { id: ME, word: race.pending });
+      }
+      drawWord();
+    }
+
+    function renderWord(state) {
+      wordState = state;
+      const me = mySeat();
+      if (state.mode !== 'solo') {
+        if (state.round !== race.round) race = { round: state.round, words: [], pending: null, miss: (me && me.miss) || 0, draft: '', msg: '' };
+        if (me && me.rows) {
+          if (race.pending && me.rows.length > race.words.length) {
+            race.words.push(race.pending);
+            race.pending = null;
+          }
+          if (me.miss > race.miss) {
+            race.miss = me.miss;
+            if (race.pending && !race.draft) race.draft = race.pending;
+            race.pending = null;
+            race.msg = 'Not in word list';
+          }
+        }
+      }
+      drawWord();
+    }
+
+    function drawWord() {
+      const state = wordState;
+      if (!state) return;
+      const solo = state.mode === 'solo', me = mySeat();
+      if (!solo && !me) return;
+      const rows = (solo ? state.rows : me.rows) || [], words = solo ? state.words : race.words;
+      const finished = solo ? !!state.done : me.solved || me.gaveUp || rows.length === 6;
+      giveUpBtn.hidden = finished || (!solo && state.mode !== 'play');
+      const draft = solo ? state.typed : race.pending || race.draft;
+      wordGrid.textContent = '';
+      for (let r = 0; r < 6; r++) {
+        const word = r < rows.length ? words[r] || '' : r === rows.length && !finished ? draft : '';
+        for (let c = 0; c < 5; c++) wordGrid.append(el('i', r < rows.length ? rows[r][c] : word[c] ? 'typed' : '', word[c] || ''));
+      }
+      // Keys take the best colour their letter has had.
+      const best = {}, rank = { a: 1, p: 2, c: 3 };
+      rows.forEach((m, r) => (words[r] || '').split('').forEach((ch, c) => { if ((rank[m[c]] || 0) > (rank[best[ch]] || 0)) best[ch] = m[c]; }));
+      wordKeys.querySelectorAll('button').forEach(b => { b.className = (b.dataset.k.length > 1 ? 'wide ' : '') + (best[b.dataset.k] || ''); });
+      if (solo) return void (wordMsg.textContent = state.msg || (state.done ? 'Tap Enter for a new word' : ' '));
+      const clock = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      const winner = state.players.find(p => p.id === state.winner);
+      wordMsg.textContent = state.mode === 'over' ? 'The word was ' + state.word + ' · ' + (winner ? (winner.id === ME ? 'You win!' : winner.name + ' wins') : 'Nobody got it')
+        : state.mode !== 'play' ? ''
+        : race.msg || (me.solved ? 'Got it in ' + rows.length + '! ' : me.gaveUp ? 'You gave up. ' : finished ? 'Out of guesses. ' : '') + clock(state.left) + ' left';
+    }
+
+    // Built once and only shown or hidden, so a finger on it never loses its button.
+    $('remote-pad').append(dpad(sendKey));
+    $('remote-pills').append(
+      pill('Back', () => { sendKey('back', true); sendKey('back', false); }),
+      pill('Home', () => send('home')));
+    $('remote-volume').append(volumeRow());
+    $('remote-kbd').append(keyboard('Type on the TV'));
+    $('game-kbd').append(keyboard('Type your guess'));
+    $('game-pad').append(dpad((k, down, repeat) => {
+      const g = currentGame();
+      if (!g || !g.multi) return sendKey(k, down, repeat);
+      if (!down || repeat) return;
+      if (k !== 'ok') send('pad', { id: ME, k });
+      else if (tv.game.mode === 'lobby') send('start');
+    }));
+
+    // A touch pad for the table or court as the TV shows it: sends where the finger is,
+    // 0-1 across and down, at most 15 times a second (Realtime caps messages).
+    function touchpad() {
+      const box = el('div', 'touchpad'), dot = el('i');
+      let down = false, pos = null, last = 0, timer = null;
+      dot.style.left = dot.style.top = '50%';
+      box.append(dot);
+      const flush = () => {
+        timer = null;
+        last = Date.now();
+        send('touch', { id: ME, x: pos.x, y: pos.y });
+      };
+      const move = e => {
+        const r = box.getBoundingClientRect(), f = v => Math.round(Math.max(0, Math.min(1, v)) * 1000) / 1000;
+        pos = { x: f((e.clientX - r.left) / r.width), y: f((e.clientY - r.top) / r.height) };
+        dot.style.left = pos.x * 100 + '%';
+        dot.style.top = pos.y * 100 + '%';
+        if (timer) return;
+        const due = last + 66 - Date.now();
+        if (due <= 0) flush();
+        else timer = setTimeout(flush, due);
+      };
+      box.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        box.setPointerCapture(e.pointerId);
+        down = true;
+        move(e);
+      });
+      box.addEventListener('pointermove', e => { if (down) move(e); });
+      box.addEventListener('pointerup', () => { down = false; });
+      box.addEventListener('pointercancel', () => { down = false; });
+      return box;
+    }
+    $('game-touch').append(touchpad());
+
+    let gamesJson = '';
+    function renderGames() {
+      renderLink();
+      const g = currentGame(), seat = mySeat(), state = tv && tv.game;
+      // Back in a lobby without a seat after asking for one (the TV left and came
+      // back to the game): take it again.
+      if (g && g.multi && wantSeat && !seat && state && state.mode === 'lobby') send('join', { id: ME, name: playerName() });
+
+      renderVolume();
+      const view = JSON.stringify([tvLive(), tv && tv.app, g, seat, state, tv && tv.games]);
+      if (view === gamesJson) return;
+      gamesJson = view;
+
+      const now = $('game-now');
+      now.textContent = '';
+      $('game-pad').hidden = !g || (g.multi && (g.multi !== 'pad' || !seat));
+      $('game-touch').hidden = !g || g.multi !== 'touch' || !seat;
+      // Wordle has its own keyboard (game-word).
+      $('game-kbd').hidden = !g || !g.keyboard || !!g.multi;
+      $('game-board').hidden = !g || g.multi !== 'board' || !seat;
+      $('game-choice').hidden = !g || g.multi !== 'choice' || !seat;
+      const wordle = g && g.multi === 'wordle' && state && (state.mode === 'solo' || (seat && state.mode !== 'lobby' && state.mode !== 'pick'));
+      $('game-word').hidden = !wordle;
+      if (seat && g.multi === 'board') renderBoard(state);
+      if (seat && g.multi === 'choice') renderChoices(state);
+      if (wordle) renderWord(state);
+      if (seat) document.documentElement.style.setProperty('--seat', seat.color);
+      if (!tvLive()) {
+        now.append(el('div', 'note', linked ? 'Open the launcher on the TV to play.' : 'Connecting to the TV…'));
+      } else if (tv.app && tv.app !== 'launcher') {
+        now.append(el('div', 'note', 'Another app is open on the TV. Press Home on the Remote tab to come back to the games.'));
+      } else if (g) {
+        const card = el('div', 'on-tv');
+        card.append(el('small', null, 'On the TV'), el('b', null, titleCase(g.name)));
+        if (state && state.mode === 'pick') {
+          const pills = el('div', 'pills');
+          pills.style.marginTop = '14px';
+          const choice = (label, cls, fn) => {
+            const b = button('pill' + cls, label, fn);
+            b.textContent = label;
+            return b;
+          };
+          pills.append(
+            choice('Solo', '', () => send('pick', { mode: 'solo' })),
+            choice('Multiplayer', ' go', () => {
+              wantSeat = true;
+              send('pick', { mode: 'race' });
+              setTimeout(() => send('join', { id: ME, name: playerName() }), 400);
+            }));
+          card.append(el('small', null, 'Play on your own, or race everyone on the same word.'), pills);
+        } else if (state && state.mode === 'solo') {
+          card.append(el('small', null, 'Tap the letters below.'));
+        } else if (g.multi && state) {
+          state.players.forEach(p => {
+            const row = el('div', 'seat');
+            const dot = el('i');
+            dot.style.background = p.color;
+            row.append(dot, p.name + (p.id === ME ? ' (you)' : ''), el('span', null, p.wins + (p.wins === 1 ? ' win' : ' wins')));
+            card.append(row);
+          });
+          if (!seat) {
+            const input = el('input');
+            input.id = 'player';
+            input.maxLength = 12;
+            input.placeholder = 'Your name';
+            input.value = $('name').value;
+            input.oninput = () => { $('name').value = input.value; $('name').dispatchEvent(new Event('input')); };
+            const pills = el('div', 'pills');
+            pills.style.marginTop = '14px';
+            if (state.mode === 'lobby' && state.players.length < state.seats) {
+              pills.append(pill('Join game', () => { wantSeat = true; send('join', { id: ME, name: playerName() }); }, 'go'));
+              card.append(input, pills);
+            } else card.append(el('small', null, state.mode === 'lobby' ? 'All seats are taken.' : 'Round under way. Join when it ends.'));
+          } else {
+            card.style.boxShadow = 'inset 4px 0 0 ' + seat.color;
+            const how = { touch: 'Drag on the pad below to move.', pad: 'Steer with the arrows.', board: 'Tap a square on your turn.', choice: 'Tap your answer.', wordle: 'Same word for everyone. The TV only shows colours.' }[g.multi];
+            card.append(el('small', null, state.mode === 'lobby' ? "You're " + seat.label.toLowerCase() + '. Start when everyone is in.' : how));
+            const pills = el('div', 'pills');
+            pills.style.marginTop = '14px';
+            if (state.mode === 'lobby') {
+              pills.append(
+                pill('Start', () => send('start'), 'go'),
+                pill('Leave', () => { wantSeat = false; send('leave', { id: ME }); }));
+            }
+            card.append(pills);
+          }
+        }
+        now.append(card);
+      }
+
+      const list = $('game-list');
+      list.textContent = '';
+      if (!tvLive() || (tv.app && tv.app !== 'launcher')) return;
+      list.append(el('h2', null, g ? 'Switch game' : 'Pick a game'));
+      tv.games.forEach(game => {
+        const row = button('game-row', 'Play ' + game.name, () => {
+          // iOS only raises the keyboard for a focus made during a tap, so it's done here.
+          if (game.keyboard && !game.multi) {
+            $('game-kbd').hidden = false;
+            $('game-kbd').firstChild.focus();
+          }
+          // Wordle asks solo or multiplayer before anyone takes a seat.
+          const seats = game.multi && !game.keyboard;
+          wantSeat = seats;
+          send('open', { game: game.key });
+          if (seats) setTimeout(() => send('join', { id: ME, name: playerName() }), 400);
+        });
+        const meta = el('div', 'meta');
+        meta.append(el('div', 'name', titleCase(game.name)), el('div', 'sub', game.multi && game.keyboard ? 'Solo, or race your friends' : game.multi ? 'Party game: phones as controllers, or you vs the CPU' : game.keyboard ? 'Type with your phone' : 'Play with the pad'));
+        row.append(meta);
+        row.insertAdjacentHTML('beforeend', ICON.go);
+        list.append(row);
+      });
+    }
+
+    function titleCase(s) {
+      return s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+    }
+
+    function showTab(name) {
+      tab = name;
+      ['remote', 'spotify', 'games'].forEach(t => { $('tab-' + t).hidden = t !== name; });
+      document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+      try { localStorage.setItem('jam-tab', name); } catch (e) {}
+      history.replaceState(null, '', '#' + name);
+      renderMini();
+    }
+    document.querySelectorAll('#tabs button').forEach(b => { b.onclick = () => showTab(b.dataset.tab); });
+    const asked = location.hash.slice(1);
+    let saved = null;
+    try { saved = localStorage.getItem('jam-tab'); } catch (e) {}
+    showTab(['remote', 'spotify', 'games'].indexOf(asked) >= 0 ? asked : saved || 'remote');
+    if (!ROOM) {
+      document.querySelector('main').style.display = $('tabs').style.display = 'none';
+      $('join').hidden = false;
+      $('join').onsubmit = e => {
+        e.preventDefault();
+        const code = $('join-code').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (code) location.search = '?room=' + code;
+      };
+    } else {
+      connect();
+      renderGames();
+      setInterval(renderGames, 3000);
+
+      renderDevice();
+      renderNow();
+      renderLibrary();
+      loadState();
+      setInterval(loadState, 2500);
+      setInterval(renderPlayback, 500);
+    }
+  </script>
+</body>
+</html>

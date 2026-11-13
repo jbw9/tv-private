@@ -2,6 +2,7 @@
 // No room here: deploy.sh gives each TV its own.
 Object.assign(window.CONFIG, {
   name: 'JONATHAN',
+  design: 'lakeside',
   supabaseUrl: 'https://jbvkjvdthuzofvmhwctv.supabase.co',
   supabaseKey: 'sb_publishable_hbxcjbYF5H8py5gGLokxPg_tD9nGsNl',
   // Movies keeps Heartive's app ID (movies/config.xml). Its logo is linked in by link.sh.

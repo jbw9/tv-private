@@ -1,0 +1,9 @@
+.env
+build/
+dist/
+.DS_Store
+# Personal: local settings and notes.
+app/config.local.js
+INSTRUCTIONS.md
+.gstack/
+app/img/logos/movies.png

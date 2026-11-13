@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Install the launcher (../tv-setup) and Movies (../movies) on a Samsung TV in Developer Mode.
+# Install the launcher (./tv-setup) and Movies (../movies) on a Samsung TV in Developer Mode.
 # Usage: ./deploy.sh <tv-ip> [design]
 # Env:   CERT_PROFILE  certificate profile from Tizen Certificate Manager (default: the active one)
 #        TIZEN_HOME    Tizen Studio install dir (default: ~/tizen-studio)
-#        TV_DIR        the public launcher repo, jbw9/bonito-tv (default: ../tv-setup)
-#        MOVIES_DIR    the movies repo (default: ../movies)
+#        TV_DIR        the launcher, a copy of jbw9/bonito-tv (default: ./tv-setup)
+#        MOVIES_DIR    the movies repo (default: ../movies, cloned from jbw9/movies if missing)
 set -euo pipefail
 
 TV_IP="${1:?usage: ./deploy.sh <tv-ip> [design]}"
@@ -13,8 +13,9 @@ export CERT_PROFILE="${CERT_PROFILE:-$(sed -n 's/.*<profiles active="\([^"]*\)".
 TIZEN_HOME="${TIZEN_HOME:-$HOME/tizen-studio}"
 TIZEN="$TIZEN_HOME/tools/ide/bin/tizen"
 SDB="$TIZEN_HOME/tools/sdb"
-TV_DIR="${TV_DIR:-$(cd .. && pwd)/tv-setup}"
+TV_DIR="${TV_DIR:-$PWD/tv-setup}"
 MOVIES_DIR="${MOVIES_DIR:-$(cd .. && pwd)/movies}"
+[ -d "$MOVIES_DIR" ] || git clone https://github.com/jbw9/movies.git "$MOVIES_DIR"
 [ -d node_modules/typescript ] || { echo "Run 'npm install' here first: it builds Movies for older TVs." >&2; exit 1; }
 
 "$SDB" connect "$TV_IP"

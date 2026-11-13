@@ -65,7 +65,7 @@ to match the apps already installed (see step 5).
      Certificate-Manager cert-add-on TV-SAMSUNG-Extension-Tools TV-SAMSUNG-Extension-Resources
    ```
    Skip the emulator package. It's large and not needed.
-3. In `tv-private` (next to `tv-setup` and `movies`), run `./link.sh`, then `npm install`
+3. In `tv-private`, run `./link.sh`, then `npm install`
    (or `bun install`). That installs TypeScript, which builds Movies' copy for older TVs.
    `deploy.sh` stops and says so if it's missing.
 
@@ -154,7 +154,8 @@ them first. This is how `new` was made for the 65" TV.
 
 ## 6. Install
 
-Run this from `tv-private`, which sits next to `tv-setup` and `movies`. Run `./link.sh` and
+Run this from `tv-private`. The launcher is in its `tv-setup` folder, and Movies is cloned next
+to it as `../movies` on the first deploy. Run `./link.sh` and
 `npm install` once per Mac first (step 1):
 
 ```
